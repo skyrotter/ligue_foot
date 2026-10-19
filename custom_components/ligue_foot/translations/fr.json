@@ -28,7 +28,12 @@
         "data": {
           "notify_service": "Service de notification",
           "reminder_minutes": "Rappel avant le coup d'envoi (minutes)",
-          "message": "Texte du message"
+          "message": "Texte du message",
+          "lights": "Lampes (Philips Hue, Ambilight, ...)",
+          "light_kickoff": "Couleurs de l'équipe au coup d'envoi",
+          "light_goal": "Flash quand ton équipe marque",
+          "light_prematch": "Ambiance avant le match (minutes, 0 = désactivé)",
+          "light_restore": "Rétablir les lampes à la fin du match"
         }
       }
     }
