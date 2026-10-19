@@ -574,15 +574,22 @@ const LF_CARDS = [
   ["ligue-foot-matchday-card", LigueFootMatchdayCard, "matchdayName", "matchdayDesc"],
 ];
 
-if (!customElements.get("ligue-foot-editor")) {
-  customElements.define("ligue-foot-editor", LigueFootEditor);
+// On déclare les cartes une fois l'interface de HA démarrée : HA installe un
+// polyfill de registre d'éléments qui ne « voit » pas les éléments déclarés avant lui
+// (sinon : « Custom element not found » et prévisualisations qui tournent sans fin).
+function lfRegisterAll() {
+  if (!customElements.get("ligue-foot-editor")) {
+    customElements.define("ligue-foot-editor", LigueFootEditor);
+  }
+
+  window.customCards = window.customCards || [];
+  for (const [tag, klass, nameKey, descKey] of LF_CARDS) {
+    if (!customElements.get(tag)) customElements.define(tag, klass);
+    const t = LF_TEXT[(navigator.language || "en").toLowerCase().startsWith("fr") ? "fr" : "en"];
+    window.customCards.push({ type: tag, name: t[nameKey], description: t[descKey], preview: false });
+  }
 }
 
-window.customCards = window.customCards || [];
-for (const [tag, klass, nameKey, descKey] of LF_CARDS) {
-  if (!customElements.get(tag)) customElements.define(tag, klass);
-  const t = LF_TEXT[(navigator.language || "en").toLowerCase().startsWith("fr") ? "fr" : "en"];
-  window.customCards.push({ type: tag, name: t[nameKey], description: t[descKey], preview: false });
-}
+customElements.whenDefined("home-assistant").then(lfRegisterAll);
 
 console.info(`%c LIGUE-FOOT %c v${LF_VERSION} `, "background:#2aa5e0;color:#fff", "background:#101a33;color:#fff");
