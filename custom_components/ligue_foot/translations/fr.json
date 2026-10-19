@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ligue Foot",
+        "description": "Choisis les championnats que tu veux suivre.",
+        "data": { "leagues": "Championnats" }
+      },
+      "teams": {
+        "title": "Équipes favorites",
+        "description": "Sélectionne une ou plusieurs équipes.",
+        "data": { "teams": "Équipes" }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de joindre ESPN. Réessaie dans un instant.",
+      "no_team": "Choisis au moins une équipe."
+    },
+    "abort": {
+      "already_configured": "L'intégration est déjà configurée."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Rappels de match",
+        "description": "Le rappel est désactivé tant qu'aucun service de notification n'est choisi. Variables du message : {home}, {away}, {time}, {minutes}, {venue}, {league}.",
+        "data": {
+          "notify_service": "Service de notification",
+          "reminder_minutes": "Rappel avant le coup d'envoi (minutes)",
+          "message": "Texte du message"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_match": { "name": "Prochain match" },
+      "last_result": { "name": "Dernier résultat" },
+      "standings": { "name": "Classement" }
+    }
+  }
+}
