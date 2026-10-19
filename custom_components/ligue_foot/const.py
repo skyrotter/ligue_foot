@@ -1,47 +1,45 @@
 """Constantes de l'intégration Ligue Foot."""
 
-
 DOMAIN = "ligue_foot"
 
+# Ligues supportées
+LEAGUE_LIGUE1 = "ligue1"
+LEAGUE_LIGUE2 = "ligue2"
 
-# Ligues gérées (code ESPN -> nom affiché)
 LEAGUES = {
-    "fra.1": "Ligue 1",
-    "fra.2": "Ligue 2",
-    "eng.1": "Premier League",
-    "esp.1": "LaLiga",
-    "ger.1": "Bundesliga",
-    "ita.1": "Serie A",
-    "por.1": "Liga Portugal",
-    "bel.1": "Jupiler Pro League",
+    LEAGUE_LIGUE1: {"name": "Ligue 1", "espn_id": "FRA.1"},
+    LEAGUE_LIGUE2: {"name": "Ligue 2", "espn_id": "FRA.2"},
 }
 
+# Config flow
+CONF_LEAGUE = "league"
+CONF_TEAM_ID = "team_id"
+CONF_TEAM_NAME = "team_name"
 
-CONF_LEAGUES = "leagues"
-CONF_TEAMS = "teams"
-CONF_REMINDER_MINUTES = "reminder_minutes"
-CONF_NOTIFY_SERVICE = "notify_service"
-CONF_MESSAGE = "message"
+# Intervalles de polling (secondes)
+SCAN_INTERVAL_DEFAULT = 180       # 3 min au repos
+SCAN_INTERVAL_LIVE = 60           # 1 min pendant un match
+SCAN_INTERVAL_MATCHDAY = 300      # 5 min le jour d'un match (avant coup d'envoi)
 
+# Cache
+CACHE_TTL_DAYS = 7                # Durée de conservation des dernières données connues
 
-DEFAULT_REMINDER_MINUTES = 30
-DEFAULT_MESSAGE = "⚽ {home} - {away} à {time} ({minutes} min) – {venue}"
+# États de synchronisation
+SYNC_STATUS_READY = "ready"
+SYNC_STATUS_INITIALIZING = "initializing"
+SYNC_STATUS_FETCHING = "fetching"
+SYNC_STATUS_RATE_LIMITED = "rate_limited"
+SYNC_STATUS_PROVIDER_UNAVAILABLE = "provider_unavailable"
 
+# URL de base ESPN
+ESPN_API_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer"
+ESPN_SCOREBOARD = "{base}/{league_id}/scoreboard"
+ESPN_STANDINGS = "{base}/{league_id}/standings"
+ESPN_TEAMS = "{base}/{league_id}/teams"
+ESPN_TEAM_SCHEDULE = "{base}/{league_id}/teams/{team_id}/schedule"
 
-# Fenêtre de matchs récupérée autour d'aujourd'hui (en jours)
-DAYS_BEHIND = 70
-DAYS_AHEAD = 45
-
-
-UPDATE_INTERVAL_MINUTES = 15
-
-# Cartes Lovelace fournies avec l'intégration
-CARDS_URL = "/ligue_foot_static/ligue-foot-cards.js"
-CARDS_VERSION = "0.4.0"
-
-# Lumières (Philips Hue, Ambilight, toute entité light)
-CONF_LIGHTS = "lights"
-CONF_LIGHT_KICKOFF = "light_kickoff"
-CONF_LIGHT_GOAL = "light_goal"
-CONF_LIGHT_PREMATCH = "light_prematch"
-CONF_LIGHT_RESTORE = "light_restore"
+# Événements HA
+EVENT_GOAL = "ligue_foot_goal"
+EVENT_KICKOFF = "ligue_foot_kickoff"
+EVENT_MATCH_FINISHED = "ligue_foot_match_finished"
+EVENT_RED_CARD = "ligue_foot_red_card"
