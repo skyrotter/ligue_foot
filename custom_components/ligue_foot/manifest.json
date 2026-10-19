@@ -1,12 +1,19 @@
 {
   "domain": "ligue_foot",
   "name": "Ligue Foot",
+  "after_dependencies": [
+    "light",
+    "scene"
+  ],
   "codeowners": [],
   "config_flow": true,
-  "dependencies": ["http", "frontend"],
+  "dependencies": [
+    "http",
+    "frontend"
+  ],
   "documentation": "https://github.com/skyrotter/ligue_foot",
-  "issue_tracker": "https://github.com/skyrotter/ligue_foot/issues",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/skyrotter/ligue_foot/issues",
   "requirements": [],
-  "version": "0.3.1"
+  "version": "0.4.0"
 }
