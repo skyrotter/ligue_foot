@@ -24,6 +24,7 @@ from .const import (
     LEAGUES,
 )
 from .coordinator import LigueFootCoordinator
+from .lights import LightManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -119,6 +120,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     reminders.reschedule()
     entry.async_on_unload(coordinator.async_add_listener(reminders.reschedule))
     entry.async_on_unload(reminders.cancel)
+
+    # Effets lumineux (Hue, Ambilight...) : actifs seulement si des lampes sont choisies
+    lights = LightManager(hass, entry, coordinator)
+    await lights.async_start()
+    entry.async_on_unload(lights.stop)
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
