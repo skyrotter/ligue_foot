@@ -5,7 +5,9 @@
     "light",
     "scene"
   ],
-  "codeowners": [],
+  "codeowners": [
+    "@skyrotter"
+  ],
   "config_flow": true,
   "dependencies": [
     "http",
