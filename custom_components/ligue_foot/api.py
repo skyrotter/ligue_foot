@@ -87,7 +87,12 @@ class EspnApi:
             raw = data["sports"][0]["leagues"][0]["teams"]
             return sorted(
                 (
-                    {"id": str(t["team"]["id"]), "name": t["team"]["displayName"]}
+                    {
+                        "id": str(t["team"]["id"]),
+                        "name": t["team"]["displayName"],
+                        "color": t["team"].get("color"),
+                        "alternate_color": t["team"].get("alternateColor"),
+                    }
                     for t in raw
                 ),
                 key=lambda t: t["name"],
