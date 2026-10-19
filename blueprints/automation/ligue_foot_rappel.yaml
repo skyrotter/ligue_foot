@@ -1,0 +1,58 @@
+blueprint:
+  name: "Ligue Foot — Rappel avant match"
+  description: >
+    Envoie une notification X minutes avant le coup d'envoi d'un match.
+    Nécessite l'intégration Ligue Foot et un service de notification configuré.
+  domain: automation
+  input:
+    match_today_sensor:
+      name: Capteur "Match aujourd'hui"
+      description: Le capteur binaire match_today de ton équipe.
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: ligue_foot
+    next_match_sensor:
+      name: Capteur "Prochain match"
+      description: Le capteur sensor.next_match de ton équipe.
+      selector:
+        entity:
+          domain: sensor
+          integration: ligue_foot
+    minutes_before:
+      name: Minutes avant le coup d'envoi
+      default: 30
+      selector:
+        number:
+          min: 5
+          max: 120
+          unit_of_measurement: minutes
+    notify_service:
+      name: Service de notification
+      description: ex — notify.mobile_app_mon_telephone
+      selector:
+        text:
+
+trigger:
+  - platform: template
+    value_template: >
+      {% set kickoff = states(!input match_today_sensor) %}
+      {% if kickoff == 'on' %}
+        {% set ko = state_attr(!input next_match_sensor, 'date') | as_datetime %}
+        {% if ko %}
+          {{ (ko - now()).total_seconds() | int // 60 == !input minutes_before }}
+        {% endif %}
+      {% endif %}
+
+condition:
+  - condition: state
+    entity_id: !input match_today_sensor
+    state: "on"
+
+action:
+  - service: !input notify_service
+    data:
+      title: "⚽ Match dans {{ !input minutes_before }} min"
+      message: >
+        {{ state_attr(!input next_match_sensor, 'home_team') }} vs {{ state_attr(!input next_match_sensor, 'away_team') }}
+mode: single
