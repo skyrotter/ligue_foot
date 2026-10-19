@@ -1,7 +1,7 @@
 """Client pour l'API non officielle d'ESPN (football)."""
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, time, timezone
 from typing import Any
 
 import aiohttp
@@ -86,13 +86,23 @@ class EspnApi:
             raise EspnApiError("Réponse équipes inattendue") from err
 
     async def matches(self, league: str, start: date, end: date) -> list[dict]:
-        """Tous les matchs d'une ligue entre deux dates (1 seul appel)."""
-        data = await self._get(
-            f"{BASE}/{league}/scoreboard",
-            params={"dates": f"{start:%Y%m%d}-{end:%Y%m%d}", "limit": 500},
-        )
-        parsed = (_parse_event(e, league) for e in data.get("events", []))
-        return sorted((m for m in parsed if m), key=lambda m: m["kickoff"])
+        """Matchs d'une ligue entre deux dates.
+
+        ESPN refuse les plages de dates pour le foot (erreur 400) : on demande
+        l'année civile entière (dates=AAAA), une requête par année couverte.
+        """
+        lo = datetime.combine(start, time.min, tzinfo=timezone.utc)
+        hi = datetime.combine(end, time.max, tzinfo=timezone.utc)
+        found: dict[str, dict] = {}
+        for year in range(start.year, end.year + 1):
+            data = await self._get(
+                f"{BASE}/{league}/scoreboard", params={"dates": year, "limit": 500}
+            )
+            for event in data.get("events", []):
+                match = _parse_event(event, league)
+                if match and lo <= match["kickoff"] <= hi:
+                    found[match["id"]] = match
+        return sorted(found.values(), key=lambda m: m["kickoff"])
 
     async def standings(self, league: str) -> list[dict]:
         """Classement d'une ligue."""
