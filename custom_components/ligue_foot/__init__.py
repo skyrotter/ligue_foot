@@ -27,7 +27,7 @@ from .coordinator import LigueFootCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["sensor", "binary_sensor"]
 
 
 class ReminderManager:
