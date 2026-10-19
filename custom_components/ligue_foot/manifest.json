@@ -17,5 +17,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/skyrotter/ligue_foot/issues",
   "requirements": [],
-  "version": "0.4.0"
+  "version": "0.5.0"
 }
