@@ -1,0 +1,59 @@
+blueprint:
+  name: "Ligue Foot — Notification de but"
+  description: >
+    Déclenche une action à chaque but marqué (via l'événement ligue_foot_goal).
+    Peut être utilisé pour envoyer une notification, allumer des lumières Hue/Ambilight, etc.
+  domain: automation
+  input:
+    team_entity_id:
+      name: ID de l'entrée de configuration (config_entry_id)
+      description: >
+        Laisse vide pour réagir à tous les buts, ou filtre sur une équipe spécifique
+        en indiquant le nom d'équipe.
+      default: ""
+      selector:
+        text:
+    notify_service:
+      name: Service de notification (optionnel)
+      description: ex — notify.mobile_app_mon_telephone. Laisse vide pour ne pas notifier.
+      default: ""
+      selector:
+        text:
+    light_entity:
+      name: Entité lumière à animer (optionnel)
+      description: Hue, Ambilight ou autre. Laisse vide pour ignorer.
+      default: ""
+      selector:
+        entity:
+          domain: light
+
+trigger:
+  - platform: event
+    event_type: ligue_foot_goal
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ !input notify_service != '' }}"
+        sequence:
+            - service: !input notify_service
+              data:
+                title: "⚽ BUT !"
+                message: >
+                  {{ trigger.event.data.scorer | default('Buteur inconnu') }}
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ !input light_entity != '' }}"
+        sequence:
+            - service: light.turn_on
+              target:
+                entity_id: !input light_entity
+              data:
+                flash: short
+                color_name: green
+mode: queued
+max: 5
