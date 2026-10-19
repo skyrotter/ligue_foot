@@ -31,4 +31,4 @@ UPDATE_INTERVAL_MINUTES = 15
 
 # Cartes Lovelace fournies avec l'intégration
 CARDS_URL = "/ligue_foot_static/ligue-foot-cards.js"
-CARDS_VERSION = "0.2.0"
+CARDS_VERSION = "0.3.0"
