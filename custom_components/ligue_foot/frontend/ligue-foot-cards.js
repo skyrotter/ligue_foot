@@ -113,6 +113,7 @@ const LF_STYLE = `
     padding: 16px;
     box-sizing: border-box;
     overflow: hidden;
+    container-type: inline-size;
     /* Design « Nuit » (par défaut) */
     --lf-bg: linear-gradient(160deg, #101a33 0%, #0b1226 100%);
     --lf-fg: #e8edf7; --lf-muted: #8d99b3; --lf-soft: #c4cde0;
@@ -210,6 +211,12 @@ const LF_STYLE = `
   }
   .rank[style] { color: #fff; }
   tr.hl td { background: var(--lf-hl); }
+  /* Carte étroite : on masque G / N / P pour garder les noms lisibles */
+  @container (max-width: 340px) {
+    .opt { display: none; }
+    th, td { padding-left: 2px; padding-right: 2px; }
+    .row .sc { font-size: 12px; }
+  }
 
   /* --- Journée --- */
   .sec { margin-bottom: 14px; }
@@ -217,11 +224,13 @@ const LF_STYLE = `
   .day { text-align: center; font-weight: 700; font-size: 13px; padding: 6px 0 4px;
     color: var(--lf-soft); border-top: 1px solid var(--lf-line); }
   .day:first-of-type { border-top: 0; }
-  .row { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: center; gap: 6px;
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px;
     padding: 4px 0; font-size: 13px; }
   .row .h { display: flex; justify-content: flex-end; align-items: center; gap: 6px; text-align: right; }
   .row .a { display: flex; justify-content: flex-start; align-items: center; gap: 6px; }
   .row img { width: 20px; height: 20px; }
+  .row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .sc { min-width: 54px; }
   .row .sc { text-align: center; font-weight: 800; }
   .row .sc.t { font-weight: 600; color: var(--lf-soft); }
 `;
@@ -406,8 +415,8 @@ class LigueFootStandingsCard extends LigueFootBase {
         return `<tr class="${on ? "hl" : ""}" title="${lfEsc(r.zone_desc || "")}">
           <td><span class="rank" ${bg}>${r.rank}</span></td>
           <td class="t"><div class="tn">${lfLogo(r.logo)}<span>${lfEsc(r.team)}</span></div></td>
-          <td class="pts">${r.points}</td><td>${r.played}</td><td>${r.wins}</td>
-          <td>${r.draws}</td><td>${r.losses}</td><td>${r.goal_diff > 0 ? "+" : ""}${r.goal_diff}</td>
+          <td class="pts">${r.points}</td><td>${r.played}</td><td class="opt">${r.wins}</td>
+          <td class="opt">${r.draws}</td><td class="opt">${r.losses}</td><td>${r.goal_diff > 0 ? "+" : ""}${r.goal_diff}</td>
         </tr>`;
       })
       .join("");
@@ -415,7 +424,7 @@ class LigueFootStandingsCard extends LigueFootBase {
     return `<div class="title"><ha-icon icon="mdi:trophy"></ha-icon>${lfEsc(title)}</div>
       <table>
         <tr><th>#</th><th class="t">${t.team}</th><th>${t.pts}</th><th>${t.played}</th>
-        <th>${t.won}</th><th>${t.drawn}</th><th>${t.lost}</th><th>${t.diff}</th></tr>
+        <th class="opt">${t.won}</th><th class="opt">${t.drawn}</th><th class="opt">${t.lost}</th><th>${t.diff}</th></tr>
         ${body}
       </table>`;
   }
