@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ligue Foot",
+        "description": "Choose the leagues you want to follow.",
+        "data": { "leagues": "Leagues" }
+      },
+      "teams": {
+        "title": "Favorite teams",
+        "description": "Select one or more teams.",
+        "data": { "teams": "Teams" }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to reach ESPN. Try again shortly.",
+      "no_team": "Pick at least one team."
+    },
+    "abort": {
+      "already_configured": "The integration is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Match reminders",
+        "description": "Reminders are disabled until a notification service is chosen. Message variables: {home}, {away}, {time}, {minutes}, {venue}, {league}.",
+        "data": {
+          "notify_service": "Notification service",
+          "reminder_minutes": "Reminder before kickoff (minutes)",
+          "message": "Message text"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_match": { "name": "Next match" },
+      "last_result": { "name": "Last result" },
+      "standings": { "name": "Standings" }
+    }
+  }
+}
