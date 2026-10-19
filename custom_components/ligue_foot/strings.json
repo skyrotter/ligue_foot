@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ligue Foot — Select a league",
+        "description": "Choose the competition to follow.",
+        "data": {
+          "league": "League"
+        }
+      },
+      "team": {
+        "title": "Ligue Foot — Select a team",
+        "description": "Choose your favourite team.",
+        "data": {
+          "team_id": "Team"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the ESPN API. Check your internet connection."
+    },
+    "abort": {
+      "already_configured": "This team is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Notification options",
+        "data": {
+          "notify_kickoff": "Notify on kick-off",
+          "notify_goal": "Notify on each goal",
+          "notify_red_card": "Notify on red cards",
+          "notify_match_end": "Notify on match end",
+          "notify_service": "HA notification service (e.g. notify.mobile_app)",
+          "silence_start": "Silence window start (HH:MM)",
+          "silence_end": "Silence window end (HH:MM)"
+        }
+      }
+    }
+  }
+}
