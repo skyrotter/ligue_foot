@@ -3,13 +3,18 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
+from pathlib import Path
 
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CARDS_URL,
+    CARDS_VERSION,
     CONF_MESSAGE,
     CONF_NOTIFY_SERVICE,
     CONF_REMINDER_MINUTES,
@@ -92,7 +97,21 @@ class ReminderManager:
         self._unsubs.clear()
 
 
+async def _async_register_cards(hass: HomeAssistant) -> None:
+    """Sert le fichier JS des cartes et le charge automatiquement dans l'interface."""
+    key = f"{DOMAIN}_frontend"
+    if hass.data.get(key):
+        return
+    path = Path(__file__).parent / "frontend" / "ligue-foot-cards.js"
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(CARDS_URL, str(path), False)]
+    )
+    add_extra_js_url(hass, f"{CARDS_URL}?v={CARDS_VERSION}")
+    hass.data[key] = True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    await _async_register_cards(hass)
     coordinator = LigueFootCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
