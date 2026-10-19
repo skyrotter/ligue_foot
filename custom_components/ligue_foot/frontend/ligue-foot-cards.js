@@ -199,8 +199,9 @@ const LF_STYLE = `
   th { color: var(--lf-muted); font-weight: 600; padding: 4px 4px; text-align: center; }
   td { padding: 5px 4px; text-align: center; border-top: 1px solid var(--lf-line); }
   th.t, td.t { text-align: left; }
-  td.t { font-weight: 600; }
-  .tn { display: flex; align-items: center; gap: 8px; }
+  td.t { font-weight: 600; width: 100%; max-width: 0; }
+  .tn { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .tn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tn img { width: 20px; height: 20px; }
   td.pts { font-weight: 800; }
   .rank {
