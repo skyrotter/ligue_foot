@@ -120,12 +120,12 @@ const LF_STYLE = `
   .err { color: #ff8a80; padding: 8px 0; }
 
   /* --- Prochain match --- */
-  .match { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+  .match { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
   .match .team { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-  .match .team img { width: 72px; height: 72px; }
-  .match .team span { font-weight: 700; font-size: 15px; }
-  .match .mid { text-align: center; min-width: 84px; }
-  .match .time { font-size: 26px; font-weight: 800; }
+  .match .team img { width: 64px; height: 64px; max-width: 100%; }
+  .match .team span { font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+  .match .mid { text-align: center; min-width: 0; }
+  .match .time { font-size: 22px; font-weight: 800; }
   .match .score { font-size: 30px; font-weight: 800; letter-spacing: 2px; }
   .badge-live {
     display: inline-block; margin-top: 4px; padding: 2px 10px; border-radius: 10px;
