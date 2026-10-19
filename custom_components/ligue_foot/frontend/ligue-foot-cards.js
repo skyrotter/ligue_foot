@@ -10,7 +10,7 @@
  *  - custom:ligue-foot-teams-card       (aucune entité : détecte tes équipes)
  */
 
-const LF_VERSION = "0.3.0";
+const LF_VERSION = "0.3.1";
 
 // ---------------------------------------------------------------- Traductions
 const LF_TEXT = {
@@ -45,6 +45,7 @@ const LF_TEXT = {
     dHa: "Natif Home Assistant",
     dLight: "Clair",
     dStadium: "Stade",
+    dGlass: "Verre liquide",
     nextName: "Match à venir – Ligue Foot",
     nextDesc: "Prochain match d'une équipe favorite.",
     formName: "Forme d'équipe – Ligue Foot",
@@ -85,6 +86,7 @@ const LF_TEXT = {
     dHa: "Home Assistant (native)",
     dLight: "Light",
     dStadium: "Stadium",
+    dGlass: "Liquid glass",
     nextName: "Next match – Ligue Foot",
     nextDesc: "Next match of a favourite team.",
     formName: "Team form – Ligue Foot",
@@ -147,6 +149,19 @@ const LF_STYLE = `
     --lf-title: #fde68a; --lf-accent: #ffffff;
     --lf-border: rgba(255, 255, 255, 0.25); --lf-line: rgba(255, 255, 255, 0.22);
     --lf-hl: rgba(255, 255, 255, 0.18); --lf-rank: rgba(0, 0, 0, 0.35); --lf-rank-fg: #fff;
+  }
+  /* Design « Verre liquide » : translucide, flou d'arrière-plan, reflets */
+  ha-card.glass {
+    --lf-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.04)), rgba(30, 45, 110, 0.42);
+    --lf-fg: #ffffff; --lf-muted: rgba(255, 255, 255, 0.68); --lf-soft: rgba(255, 255, 255, 0.9);
+    --lf-title: #ffffff; --lf-accent: #3b82f6;
+    --lf-border: rgba(255, 255, 255, 0.3); --lf-line: rgba(255, 255, 255, 0.16);
+    --lf-hl: rgba(255, 255, 255, 0.16); --lf-rank: rgba(255, 255, 255, 0.2); --lf-rank-fg: #ffffff;
+    border-radius: 28px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -12px 28px rgba(255, 255, 255, 0.05), 0 8px 32px rgba(0, 0, 0, 0.3);
   }
   .title {
     color: var(--lf-title);
@@ -293,7 +308,7 @@ class LigueFootBase extends HTMLElement {
   // Design choisi : night (défaut), ha, light, stadium
   _design() {
     const d = this._config && this._config.design;
-    return ["ha", "light", "stadium"].includes(d) ? d : "night";
+    return ["ha", "light", "stadium", "glass"].includes(d) ? d : "night";
   }
 
   _frame(inner) {
@@ -522,6 +537,7 @@ class LigueFootEditor extends HTMLElement {
               { value: "ha", label: t.dHa },
               { value: "light", label: t.dLight },
               { value: "stadium", label: t.dStadium },
+              { value: "glass", label: t.dGlass },
             ],
           },
         },
