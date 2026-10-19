@@ -163,6 +163,55 @@ const LF_STYLE = `
     backdrop-filter: blur(18px) saturate(160%);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -12px 28px rgba(255, 255, 255, 0.05), 0 8px 32px rgba(0, 0, 0, 0.3);
   }
+  /* Animations (option animations: false pour les couper ; respecte reduire les animations) */
+  @media (prefers-reduced-motion: no-preference) {
+    ha-card.anim .badge-live::before, ha-card.anim .tm-b.live::before {
+      content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: currentColor; margin-right: 6px; vertical-align: middle;
+      animation: lf-live 1.2s ease-in-out infinite;
+    }
+    ha-card.anim .tm-b:not(.live) { animation: lf-breathe 2.6s ease-in-out infinite; }
+    ha-card.anim .score.pop { animation: lf-pop 0.9s ease; }
+    ha-card.anim.enter .form .f, ha-card.anim.enter .tm-p { animation: lf-cascade 0.5s ease both; }
+    ha-card.anim.enter tr, ha-card.anim.enter .row, ha-card.anim.enter .day, ha-card.anim.enter .tm { animation: lf-rise 0.45s ease both; }
+    ha-card.anim.enter .form .f:nth-child(1), ha-card.anim.enter .tm-ps .tm-p:nth-child(1) { animation-delay: 0.09s; }
+    ha-card.anim.enter .form .f:nth-child(2), ha-card.anim.enter .tm-ps .tm-p:nth-child(2) { animation-delay: 0.18s; }
+    ha-card.anim.enter .form .f:nth-child(3), ha-card.anim.enter .tm-ps .tm-p:nth-child(3) { animation-delay: 0.27s; }
+    ha-card.anim.enter .form .f:nth-child(4), ha-card.anim.enter .tm-ps .tm-p:nth-child(4) { animation-delay: 0.36s; }
+    ha-card.anim.enter .form .f:nth-child(5), ha-card.anim.enter .tm-ps .tm-p:nth-child(5) { animation-delay: 0.45s; }
+    ha-card.anim.enter tr:nth-child(1), ha-card.anim.enter .row:nth-child(1), ha-card.anim.enter .tm:nth-child(1) { animation-delay: 0.04s; }
+    ha-card.anim.enter tr:nth-child(2), ha-card.anim.enter .row:nth-child(2), ha-card.anim.enter .tm:nth-child(2) { animation-delay: 0.08s; }
+    ha-card.anim.enter tr:nth-child(3), ha-card.anim.enter .row:nth-child(3), ha-card.anim.enter .tm:nth-child(3) { animation-delay: 0.12s; }
+    ha-card.anim.enter tr:nth-child(4), ha-card.anim.enter .row:nth-child(4), ha-card.anim.enter .tm:nth-child(4) { animation-delay: 0.16s; }
+    ha-card.anim.enter tr:nth-child(5), ha-card.anim.enter .row:nth-child(5), ha-card.anim.enter .tm:nth-child(5) { animation-delay: 0.20s; }
+    ha-card.anim.enter tr:nth-child(6), ha-card.anim.enter .row:nth-child(6), ha-card.anim.enter .tm:nth-child(6) { animation-delay: 0.24s; }
+    ha-card.anim.enter tr:nth-child(7), ha-card.anim.enter .row:nth-child(7), ha-card.anim.enter .tm:nth-child(7) { animation-delay: 0.28s; }
+    ha-card.anim.enter tr:nth-child(8), ha-card.anim.enter .row:nth-child(8), ha-card.anim.enter .tm:nth-child(8) { animation-delay: 0.32s; }
+    ha-card.anim.enter tr:nth-child(9), ha-card.anim.enter .row:nth-child(9), ha-card.anim.enter .tm:nth-child(9) { animation-delay: 0.36s; }
+    ha-card.anim.enter tr:nth-child(10), ha-card.anim.enter .row:nth-child(10), ha-card.anim.enter .tm:nth-child(10) { animation-delay: 0.40s; }
+    ha-card.anim.enter tr:nth-child(11), ha-card.anim.enter .row:nth-child(11), ha-card.anim.enter .tm:nth-child(11) { animation-delay: 0.44s; }
+    ha-card.anim.enter tr:nth-child(12), ha-card.anim.enter .row:nth-child(12), ha-card.anim.enter .tm:nth-child(12) { animation-delay: 0.48s; }
+    ha-card.anim.enter tr:nth-child(13), ha-card.anim.enter .row:nth-child(13), ha-card.anim.enter .tm:nth-child(13) { animation-delay: 0.52s; }
+    ha-card.anim.enter tr:nth-child(14), ha-card.anim.enter .row:nth-child(14), ha-card.anim.enter .tm:nth-child(14) { animation-delay: 0.56s; }
+    ha-card.anim.enter tr:nth-child(15), ha-card.anim.enter .row:nth-child(15), ha-card.anim.enter .tm:nth-child(15) { animation-delay: 0.60s; }
+    ha-card.anim.enter tr:nth-child(16), ha-card.anim.enter .row:nth-child(16), ha-card.anim.enter .tm:nth-child(16) { animation-delay: 0.64s; }
+    ha-card.anim.enter tr:nth-child(17), ha-card.anim.enter .row:nth-child(17), ha-card.anim.enter .tm:nth-child(17) { animation-delay: 0.68s; }
+    ha-card.anim.enter tr:nth-child(18), ha-card.anim.enter .row:nth-child(18), ha-card.anim.enter .tm:nth-child(18) { animation-delay: 0.72s; }
+    ha-card.anim.enter tr:nth-child(19), ha-card.anim.enter .row:nth-child(19), ha-card.anim.enter .tm:nth-child(19) { animation-delay: 0.76s; }
+    ha-card.anim.enter tr:nth-child(20), ha-card.anim.enter .row:nth-child(20), ha-card.anim.enter .tm:nth-child(20) { animation-delay: 0.80s; }
+    ha-card.glass.anim { position: relative; }
+    ha-card.glass.anim::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%);
+      transform: translateX(-120%); animation: lf-sheen 7s ease-in-out infinite;
+    }
+    @keyframes lf-live { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.25; transform: scale(0.6); } }
+    @keyframes lf-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+    @keyframes lf-pop { 0% { transform: scale(1); } 35% { transform: scale(1.4); } 100% { transform: scale(1); } }
+    @keyframes lf-cascade { from { opacity: 0; transform: translateY(8px) scale(0.8); } to { opacity: 1; transform: none; } }
+    @keyframes lf-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes lf-sheen { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+  }
   .title {
     color: var(--lf-title);
     font-size: 12px;
@@ -312,7 +361,16 @@ class LigueFootBase extends HTMLElement {
   }
 
   _frame(inner) {
-    this.shadowRoot.innerHTML = `<style>${LF_STYLE}</style><ha-card class="${this._design()}">${inner}</ha-card>`;
+    const anim = !this._config || this._config.animations !== false;
+    const enter = anim && !this._played;
+    this.shadowRoot.innerHTML = `<style>${LF_STYLE}</style><ha-card class="${this._design()}${anim ? " anim" : ""}${enter ? " enter" : ""}">${inner}</ha-card>`;
+    // Animation d entree : une seule fois
+    if (!inner.includes('class="err"')) this._played = true;
+    // Le score fait un pop quand il change (but)
+    const sc = this.shadowRoot.querySelector(".match .score");
+    const txt = sc ? sc.textContent : null;
+    if (anim && sc && this._lastScore != null && txt !== this._lastScore) sc.classList.add("pop");
+    this._lastScore = txt;
   }
 
   _render() {
@@ -719,6 +777,21 @@ const LF_EDITOR_SCHEMA = LigueFootEditor.prototype._schema;
 LigueFootEditor.prototype._schema = function () {
   const s = LF_EDITOR_SCHEMA.call(this);
   return this.kind === "teams" ? s.filter((f) => f.name !== "entity") : s;
+};
+
+// Option animations dans editeur visuel (activee par defaut)
+Object.assign(LF_TEXT.fr, { animations: "Animations" });
+Object.assign(LF_TEXT.en, { animations: "Animations" });
+const LF_EDITOR_SCHEMA2 = LigueFootEditor.prototype._schema;
+LigueFootEditor.prototype._schema = function () {
+  const base = LF_EDITOR_SCHEMA2.call(this);
+  base.push({ name: "animations", selector: { boolean: {} } });
+  return base;
+};
+
+const LF_EDITOR_SETCFG = LigueFootEditor.prototype.setConfig;
+LigueFootEditor.prototype.setConfig = function (config) {
+  return LF_EDITOR_SETCFG.call(this, Object.assign({ animations: true }, config));
 };
 
 const LF_CARDS = [
