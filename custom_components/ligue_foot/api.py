@@ -24,6 +24,16 @@ def _score(raw: Any) -> int | None:
         return None
 
 
+def _logo(team: dict) -> str:
+    """URL du logo : champ « logo » (scoreboard), sinon logos[0], sinon URL ESPN."""
+    if team.get("logo"):
+        return team["logo"]
+    logos = team.get("logos") or []
+    if logos and logos[0].get("href"):
+        return logos[0]["href"]
+    return f"https://a.espncdn.com/i/teamlogos/soccer/500/{team['id']}.png"
+
+
 def _parse_event(event: dict, league: str) -> dict | None:
     """Transforme un événement ESPN en dict simple."""
     try:
@@ -41,13 +51,13 @@ def _parse_event(event: dict, league: str) -> dict | None:
                 "id": str(home["team"]["id"]),
                 "name": home["team"]["displayName"],
                 "score": _score(home.get("score")),
-                "logo": (home["team"].get("logos") or [{}])[0].get("href"),
+                "logo": _logo(home["team"]),
             },
             "away": {
                 "id": str(away["team"]["id"]),
                 "name": away["team"]["displayName"],
                 "score": _score(away.get("score")),
-                "logo": (away["team"].get("logos") or [{}])[0].get("href"),
+                "logo": _logo(away["team"]),
             },
         }
     except (KeyError, IndexError, ValueError, TypeError):
@@ -118,6 +128,10 @@ class EspnApi:
                 {
                     "rank": int(stats.get("rank") or 0),
                     "team": entry["team"]["displayName"],
+                    "logo": _logo(entry["team"]),
+                    # Zone (Ligue des champions, relégation...) fournie par ESPN
+                    "zone": (entry.get("note") or {}).get("color"),
+                    "zone_desc": (entry.get("note") or {}).get("description"),
                     "points": int(stats.get("points") or 0),
                     "played": int(stats.get("gamesPlayed") or 0),
                     "wins": int(stats.get("wins") or 0),
