@@ -2,52 +2,75 @@
   "config": {
     "step": {
       "user": {
-        "title": "Ligue Foot",
-        "description": "Choisis les championnats que tu veux suivre.",
-        "data": { "leagues": "Championnats" }
+        "title": "Ligue Foot — Choix de la ligue",
+        "description": "Sélectionne la compétition à suivre.",
+        "data": {
+          "league": "Ligue"
+        }
       },
-      "teams": {
-        "title": "Équipes favorites",
-        "description": "Sélectionne une ou plusieurs équipes.",
-        "data": { "teams": "Équipes" }
+      "team": {
+        "title": "Ligue Foot — Choix de l'équipe",
+        "description": "Sélectionne ton équipe favorite.",
+        "data": {
+          "team_id": "Équipe"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Impossible de joindre ESPN. Réessaie dans un instant.",
-      "no_team": "Choisis au moins une équipe."
+      "cannot_connect": "Impossible de contacter l'API ESPN. Vérifie ta connexion Internet."
     },
     "abort": {
-      "already_configured": "L'intégration est déjà configurée."
+      "already_configured": "Cette équipe est déjà configurée."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Rappels de match",
-        "description": "Le rappel est désactivé tant qu'aucun service de notification n'est choisi. Variables du message : {home}, {away}, {time}, {minutes}, {venue}, {league}.",
+        "title": "Options — Notifications",
         "data": {
-          "notify_service": "Service de notification",
-          "reminder_minutes": "Rappel avant le coup d'envoi (minutes)",
-          "message": "Texte du message",
-          "lights": "Lampes (Philips Hue, Ambilight, ...)",
-          "light_kickoff": "Couleurs de l'équipe au coup d'envoi",
-          "light_goal": "Flash quand ton équipe marque",
-          "light_prematch": "Ambiance avant le match (minutes, 0 = désactivé)",
-          "light_restore": "Rétablir les lampes à la fin du match"
+          "notify_kickoff": "Notifier au coup d'envoi",
+          "notify_goal": "Notifier à chaque but",
+          "notify_red_card": "Notifier les cartons rouges",
+          "notify_match_end": "Notifier la fin du match",
+          "notify_service": "Service de notification HA (ex: notify.mobile_app)",
+          "silence_start": "Début de la plage de silence (HH:MM)",
+          "silence_end": "Fin de la plage de silence (HH:MM)"
         }
       }
     }
   },
   "entity": {
-    "binary_sensor": {
-      "match_day": { "name": "Jour de match" },
-      "any_match_day": { "name": "Jour de match (favoris)" }
-    },
     "sensor": {
-      "next_match": { "name": "Prochain match" },
-      "last_result": { "name": "Dernier résultat" },
-      "standings": { "name": "Classement" },
-      "matchday": { "name": "Journée" }
+      "next_match": {
+        "name": "Prochain match"
+      },
+      "standings": {
+        "name": "Classement"
+      },
+      "form": {
+        "name": "Forme"
+      },
+      "sync_status": {
+        "name": "Synchronisation",
+        "state": {
+          "ready": "Prêt",
+          "initializing": "Initialisation",
+          "fetching": "Mise à jour",
+          "rate_limited": "Quota dépassé",
+          "provider_unavailable": "ESPN indisponible"
+        }
+      }
+    },
+    "binary_sensor": {
+      "match_live": {
+        "name": "Match en cours"
+      },
+      "match_today": {
+        "name": "Match aujourd'hui"
+      },
+      "match_tomorrow": {
+        "name": "Match demain"
+      }
     }
   }
 }
