@@ -37,7 +37,8 @@
     "sensor": {
       "next_match": { "name": "Prochain match" },
       "last_result": { "name": "Dernier résultat" },
-      "standings": { "name": "Classement" }
+      "standings": { "name": "Classement" },
+      "matchday": { "name": "Journée" }
     }
   }
 }
