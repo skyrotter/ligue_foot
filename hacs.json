@@ -1,7 +1,13 @@
 {
   "name": "Ligue Foot",
   "country": [
-    "FR"
+    "FR",
+    "BE",
+    "DE",
+    "ES",
+    "GB",
+    "IT",
+    "PT"
   ],
   "homeassistant": "2024.8.0",
   "render_readme": true
