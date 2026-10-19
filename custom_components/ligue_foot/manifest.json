@@ -1,0 +1,11 @@
+{
+  "domain": "ligue_foot",
+  "name": "Ligue Foot",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/skyrotter/ligue_foot",
+  "issue_tracker": "https://github.com/skyrotter/ligue_foot/issues",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "0.1.0"
+}
