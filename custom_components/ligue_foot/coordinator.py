@@ -72,13 +72,50 @@ class LigueFootCoordinator(DataUpdateCoordinator[dict]):
         done = [m for m in self._team_matches(league, team_id) if m["state"] == "post"]
         return done[-1] if done else None
 
-    def form(self, league: str, team_id: str, count: int = 5) -> list[str]:
-        """Forme récente : liste de V / N / D (du plus ancien au plus récent)."""
+    def last_matches(self, league: str, team_id: str, count: int = 5) -> list[dict]:
+        """5 derniers matchs terminés (du plus ancien au plus récent)."""
         done = [m for m in self._team_matches(league, team_id) if m["state"] == "post"]
         out = []
         for m in done[-count:]:
-            out.append(result_for(m, team_id) or "?")
+            at_home = m["home"]["id"] == team_id
+            opp = m["away"] if at_home else m["home"]
+            out.append(
+                {
+                    "result": result_for(m, team_id) or "?",
+                    "opponent": opp["name"],
+                    "opponent_logo": opp["logo"],
+                    "home_team": m["home"]["name"],
+                    "away_team": m["away"]["name"],
+                    "home_score": m["home"]["score"],
+                    "away_score": m["away"]["score"],
+                    "at_home": at_home,
+                    "date": m["kickoff"].isoformat(),
+                }
+            )
         return out
+
+    def form(self, league: str, team_id: str, count: int = 5) -> list[str]:
+        """Forme récente : liste de V / N / D (du plus ancien au plus récent)."""
+        return [m["result"] for m in self.last_matches(league, team_id, count)]
+
+    def matchday(self, league: str) -> tuple[list[dict], list[dict]]:
+        """(derniers résultats, prochaine journée) d'une ligue.
+
+        ESPN ne donne pas toujours le numéro de journée : on regroupe les matchs
+        joués dans les 4 jours avant le dernier match terminé, et les matchs à
+        venir dans les 4 jours après le prochain match.
+        """
+        matches = (self.data or {}).get("matches", {}).get(league, [])
+        done = [m for m in matches if m["state"] == "post"]
+        coming = [m for m in matches if m["state"] in ("pre", "in")]
+        results, upcoming = [], []
+        if done:
+            ref = done[-1]["kickoff"]
+            results = [m for m in done if ref - m["kickoff"] <= timedelta(days=4)]
+        if coming:
+            ref = coming[0]["kickoff"]
+            upcoming = [m for m in coming if m["kickoff"] - ref <= timedelta(days=4)]
+        return results, upcoming
 
 
 def result_for(match: dict, team_id: str) -> str | None:
