@@ -1,12 +1,12 @@
 # ⚽ Ligue Foot pour Home Assistant
 
-Intégration Home Assistant pour suivre la **Ligue 1** et la **Ligue 2** : classement, résultats, prochains matchs, rappels de match, et des cartes Lovelace prêtes à l'emploi — **sans aucune dépendance** (pas de card-mod, mushroom ou button-card).
+Intégration Home Assistant pour suivre le football européen (**Ligue 1**, **Ligue 2**, Premier League, LaLiga, Bundesliga, Serie A, Liga Portugal, Jupiler Pro League) : classement, résultats, prochains matchs, rappels de match, et des cartes Lovelace prêtes à l'emploi — **sans aucune dépendance** (pas de card-mod, mushroom ou button-card).
 
 ![Démo](docs/demo.jpg)
 
 ## Ce qu'elle propose
 
-- **Choix des championnats** : Ligue 1, Ligue 2, ou les deux.
+- **8 championnats** : Ligue 1, Ligue 2, Premier League (Angleterre), LaLiga (Espagne), Bundesliga (Allemagne), Serie A (Italie), Liga Portugal et Jupiler Pro League (Belgique). Tu en choisis un ou plusieurs.
 - **Plusieurs équipes favorites** : chacun choisit les siennes dans l'interface, sans YAML.
 - **Rappels de match intégrés** : une notification avant le coup d'envoi (délai et message personnalisables).
 - **Interface en français** (et en anglais).
@@ -126,7 +126,7 @@ action:
 - Données issues d'une API ESPN non officielle : elle peut changer sans préavis.
 - Pour changer d'équipes favorites, supprime puis recrée l'intégration.
 - Les couleurs de l'équipe sont celles fournies par ESPN, et le retard d'un but peut aller jusqu'à environ deux minutes.
-- Ligue 1 et Ligue 2 uniquement (pas de coupes européennes pour l'instant).
+- Championnats nationaux uniquement (pas de coupes ni de compétitions européennes pour l'instant).
 
 ## Liens
 
