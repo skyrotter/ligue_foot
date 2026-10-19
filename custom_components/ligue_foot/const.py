@@ -31,7 +31,7 @@ UPDATE_INTERVAL_MINUTES = 15
 
 # Cartes Lovelace fournies avec l'intégration
 CARDS_URL = "/ligue_foot_static/ligue-foot-cards.js"
-CARDS_VERSION = "0.3.1"
+CARDS_VERSION = "0.4.0"
 
 # Lumières (Philips Hue, Ambilight, toute entité light)
 CONF_LIGHTS = "lights"
