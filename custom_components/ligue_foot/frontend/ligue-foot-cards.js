@@ -39,6 +39,11 @@ const LF_TEXT = {
     entity: "Entité",
     rows: "Nombre de lignes (vide = tout)",
     highlight: "Équipes à surligner (séparées par une virgule)",
+    design: "Design",
+    dNight: "Nuit",
+    dHa: "Natif Home Assistant",
+    dLight: "Clair",
+    dStadium: "Stade",
     nextName: "Match à venir – Ligue Foot",
     nextDesc: "Prochain match d'une équipe favorite.",
     formName: "Forme d'équipe – Ligue Foot",
@@ -74,6 +79,11 @@ const LF_TEXT = {
     entity: "Entity",
     rows: "Number of rows (empty = all)",
     highlight: "Teams to highlight (comma separated)",
+    design: "Design",
+    dNight: "Night",
+    dHa: "Home Assistant (native)",
+    dLight: "Light",
+    dStadium: "Stadium",
     nextName: "Next match – Ligue Foot",
     nextDesc: "Next match of a favourite team.",
     formName: "Team form – Ligue Foot",
@@ -95,17 +105,49 @@ const LF_STYLE = `
   :host { display: block; }
   ha-card {
     display: block;
-    background: linear-gradient(160deg, #101a33 0%, #0b1226 100%);
-    color: #e8edf7;
+    background: var(--lf-bg);
+    color: var(--lf-fg);
     border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-bottom: 3px solid var(--lf-accent, #2aa5e0);
+    border: 1px solid var(--lf-border);
+    border-bottom: 3px solid var(--lf-accent);
     padding: 16px;
     box-sizing: border-box;
     overflow: hidden;
+    /* Design « Nuit » (par défaut) */
+    --lf-bg: linear-gradient(160deg, #101a33 0%, #0b1226 100%);
+    --lf-fg: #e8edf7; --lf-muted: #8d99b3; --lf-soft: #c4cde0;
+    --lf-title: #d9a441; --lf-accent: #2aa5e0;
+    --lf-border: rgba(255, 255, 255, 0.06); --lf-line: rgba(255, 255, 255, 0.08);
+    --lf-hl: rgba(42, 165, 224, 0.16); --lf-rank: #3a4565; --lf-rank-fg: #fff;
+    --lf-win: #2e9e5b; --lf-draw: #8d99b3; --lf-loss: #d64545;
+  }
+  /* Design « Natif Home Assistant » : suit le thème clair/sombre de l'utilisateur */
+  ha-card.ha {
+    --lf-bg: var(--ha-card-background, var(--card-background-color, #fff));
+    --lf-fg: var(--primary-text-color); --lf-muted: var(--secondary-text-color);
+    --lf-soft: var(--primary-text-color); --lf-title: var(--primary-color);
+    --lf-accent: var(--primary-color); --lf-border: var(--divider-color);
+    --lf-line: var(--divider-color);
+    --lf-hl: color-mix(in srgb, var(--primary-color) 14%, transparent);
+    --lf-rank: var(--secondary-background-color, #ddd); --lf-rank-fg: var(--primary-text-color);
+  }
+  /* Design « Clair » */
+  ha-card.light {
+    --lf-bg: #ffffff; --lf-fg: #14213d; --lf-muted: #6b7a90; --lf-soft: #3d4a63;
+    --lf-title: #0a7d4b; --lf-accent: #0a7d4b;
+    --lf-border: #e3e8ef; --lf-line: #e3e8ef; --lf-hl: rgba(10, 125, 75, 0.1);
+    --lf-rank: #e3e8ef; --lf-rank-fg: #14213d;
+  }
+  /* Design « Stade » */
+  ha-card.stadium {
+    --lf-bg: repeating-linear-gradient(90deg, #14532d 0 48px, #166534 48px 96px);
+    --lf-fg: #f4fff6; --lf-muted: #b7e4c7; --lf-soft: #dcfce7;
+    --lf-title: #fde68a; --lf-accent: #ffffff;
+    --lf-border: rgba(255, 255, 255, 0.25); --lf-line: rgba(255, 255, 255, 0.22);
+    --lf-hl: rgba(255, 255, 255, 0.18); --lf-rank: rgba(0, 0, 0, 0.35); --lf-rank-fg: #fff;
   }
   .title {
-    color: var(--lf-gold, #d9a441);
+    color: var(--lf-title);
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -114,8 +156,8 @@ const LF_STYLE = `
     display: flex; align-items: center; gap: 8px;
   }
   .title ha-icon { --mdc-icon-size: 18px; }
-  .muted { color: #8d99b3; font-size: 13px; }
-  .empty { text-align: center; padding: 18px 0; color: #8d99b3; }
+  .muted { color: var(--lf-muted); font-size: 13px; }
+  .empty { text-align: center; padding: 18px 0; color: var(--lf-muted); }
   img.logo { object-fit: contain; flex: none; }
   .err { color: #ff8a80; padding: 8px 0; }
 
@@ -136,26 +178,26 @@ const LF_STYLE = `
   .info { text-align: center; margin-top: 12px; display: grid; gap: 2px; }
   .info .when { font-size: 14px; text-transform: capitalize; }
   .info .count { font-weight: 700; font-size: 15px; margin-top: 8px;
-    padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+    padding-top: 10px; border-top: 1px solid var(--lf-line); }
 
   /* --- Forme --- */
   .form { display: flex; justify-content: space-around; gap: 6px; }
   .form .f { display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .form .f img { width: 36px; height: 36px; }
-  .form .f small { color: #8d99b3; font-size: 11px; }
+  .form .f small { color: var(--lf-muted); font-size: 11px; }
   .pill {
     width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
     font-weight: 800; font-size: 13px; color: #fff;
   }
-  .pill.V, .pill.W { background: #2e9e5b; }
-  .pill.N, .pill.D { background: #8d99b3; }
-  .pill.D.loss, .pill.L { background: #d64545; }
-  .pill.q { background: #3a4565; }
+  .pill.V { background: var(--lf-win); }
+  .pill.N { background: var(--lf-draw); }
+  .pill.D { background: var(--lf-loss); }
+  .pill.q { background: var(--lf-rank); color: var(--lf-rank-fg); }
 
   /* --- Classement --- */
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { color: #8d99b3; font-weight: 600; padding: 4px 4px; text-align: center; }
-  td { padding: 5px 4px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+  th { color: var(--lf-muted); font-weight: 600; padding: 4px 4px; text-align: center; }
+  td { padding: 5px 4px; text-align: center; border-top: 1px solid var(--lf-line); }
   th.t, td.t { text-align: left; }
   td.t { font-weight: 600; }
   .tn { display: flex; align-items: center; gap: 8px; }
@@ -163,15 +205,16 @@ const LF_STYLE = `
   td.pts { font-weight: 800; }
   .rank {
     display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
-    background: #3a4565; color: #fff; font-weight: 700; font-size: 12px;
+    background: var(--lf-rank); color: var(--lf-rank-fg); font-weight: 700; font-size: 12px;
   }
-  tr.hl td { background: rgba(42, 165, 224, 0.16); }
+  .rank[style] { color: #fff; }
+  tr.hl td { background: var(--lf-hl); }
 
   /* --- Journée --- */
   .sec { margin-bottom: 14px; }
   .sec:last-child { margin-bottom: 0; }
   .day { text-align: center; font-weight: 700; font-size: 13px; padding: 6px 0 4px;
-    color: #c4cde0; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+    color: var(--lf-soft); border-top: 1px solid var(--lf-line); }
   .day:first-of-type { border-top: 0; }
   .row { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: center; gap: 6px;
     padding: 4px 0; font-size: 13px; }
@@ -179,7 +222,7 @@ const LF_STYLE = `
   .row .a { display: flex; justify-content: flex-start; align-items: center; gap: 6px; }
   .row img { width: 20px; height: 20px; }
   .row .sc { text-align: center; font-weight: 800; }
-  .row .sc.t { font-weight: 600; color: #c4cde0; }
+  .row .sc.t { font-weight: 600; color: var(--lf-soft); }
 `;
 
 // ----------------------------------------------------------------- Utilitaires
@@ -236,8 +279,14 @@ class LigueFootBase extends HTMLElement {
     return LF_TEXT[lfLang(this._hass)];
   }
 
+  // Design choisi : night (défaut), ha, light, stadium
+  _design() {
+    const d = this._config && this._config.design;
+    return ["ha", "light", "stadium"].includes(d) ? d : "night";
+  }
+
   _frame(inner) {
-    this.shadowRoot.innerHTML = `<style>${LF_STYLE}</style><ha-card>${inner}</ha-card>`;
+    this.shadowRoot.innerHTML = `<style>${LF_STYLE}</style><ha-card class="${this._design()}">${inner}</ha-card>`;
   }
 
   _render() {
@@ -452,6 +501,20 @@ class LigueFootEditor extends HTMLElement {
         selector: { entity: { domain: "sensor", integration: "ligue_foot" } },
       },
       { name: "name", selector: { text: {} } },
+      {
+        name: "design",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "night", label: t.dNight },
+              { value: "ha", label: t.dHa },
+              { value: "light", label: t.dLight },
+              { value: "stadium", label: t.dStadium },
+            ],
+          },
+        },
+      },
     ];
     if (this.kind === "standings") {
       schema.push({ name: "max_rows", selector: { number: { min: 1, max: 20, mode: "box" } } });
@@ -472,7 +535,7 @@ class LigueFootEditor extends HTMLElement {
       this.appendChild(this._form);
     }
     const t = LF_TEXT[lfLang(this._hass)];
-    const labels = { entity: t.entity, name: "Nom", max_rows: t.rows, highlight: t.highlight };
+    const labels = { entity: t.entity, design: t.design, name: "Nom", max_rows: t.rows, highlight: t.highlight };
     this._form.hass = this._hass;
     this._form.data = this._config;
     this._form.schema = this._schema();
