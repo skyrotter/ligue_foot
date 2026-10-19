@@ -1,204 +1,191 @@
-"""Config flow : choix des ligues, des équipes favorites, puis options de rappel."""
+"""Config flow pour l'intégration Ligue Foot."""
 from __future__ import annotations
 
+import logging
 from typing import Any
 
+import aiohttp
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
-    BooleanSelector,
-    EntitySelector,
-    EntitySelectorConfig,
-    NumberSelector,
-    NumberSelectorConfig,
-    NumberSelectorMode,
     SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
-    TextSelector,
-    TextSelectorConfig,
-    TextSelectorType,
 )
 
-from .api import EspnApi, EspnApiError
 from .const import (
-    CONF_LEAGUES,
-    CONF_LIGHT_GOAL,
-    CONF_LIGHT_KICKOFF,
-    CONF_LIGHT_PREMATCH,
-    CONF_LIGHT_RESTORE,
-    CONF_LIGHTS,
-    CONF_MESSAGE,
-    CONF_NOTIFY_SERVICE,
-    CONF_REMINDER_MINUTES,
-    CONF_TEAMS,
-    DEFAULT_MESSAGE,
-    DEFAULT_REMINDER_MINUTES,
+    CONF_LEAGUE,
+    CONF_TEAM_ID,
+    CONF_TEAM_NAME,
     DOMAIN,
+    ESPN_API_BASE,
+    ESPN_TEAMS,
     LEAGUES,
 )
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class LigueFootConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Étape 1 : ligues. Étape 2 : équipes (sélection multiple)."""
+    """Gère le flux de configuration en 3 étapes : ligue → équipe → confirmation."""
 
     VERSION = 1
 
     def __init__(self) -> None:
-        self._leagues: list[str] = []
-        # "fra.1:160" -> {"league": "fra.1", "id": "160", "name": "Paris Saint-Germain"}
-        self._teams_by_key: dict[str, dict] = {}
+        """Initialise le flux."""
+        self._league: str | None = None
+        self._teams: list[dict] = []
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        await self.async_set_unique_id(DOMAIN)
-        self._abort_if_unique_id_configured()
-
-        errors: dict[str, str] = {}
+        """Étape 1 : choix de la ligue."""
         if user_input is not None:
-            self._leagues = user_input[CONF_LEAGUES]
-            api = EspnApi(async_get_clientsession(self.hass))
-            try:
-                self._teams_by_key = {}
-                for league in self._leagues:
-                    for team in await api.teams(league):
-                        self._teams_by_key[f"{league}:{team['id']}"] = {
-                            "league": league,
-                            **team,
-                        }
-            except EspnApiError:
-                errors["base"] = "cannot_connect"
-            else:
-                return await self.async_step_teams()
+            self._league = user_input[CONF_LEAGUE]
+            return await self.async_step_team()
 
         schema = vol.Schema(
             {
-                vol.Required(CONF_LEAGUES, default=["fra.1"]): SelectSelector(
+                vol.Required(CONF_LEAGUE): SelectSelector(
                     SelectSelectorConfig(
                         options=[
-                            SelectOptionDict(value=k, label=v)
+                            SelectOptionDict(value=k, label=v["name"])
                             for k, v in LEAGUES.items()
                         ],
-                        multiple=True,
                         mode=SelectSelectorMode.LIST,
                     )
                 )
             }
         )
-        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
+        return self.async_show_form(step_id="user", data_schema=schema)
 
-    async def async_step_teams(
+    async def async_step_team(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        """Étape 2 : choix de l'équipe."""
         errors: dict[str, str] = {}
-        if user_input is not None:
-            chosen = user_input[CONF_TEAMS]
-            if not chosen:
-                errors["base"] = "no_team"
-            else:
-                return self.async_create_entry(
-                    title="Ligue Foot",
-                    data={CONF_TEAMS: [self._teams_by_key[k] for k in chosen]},
-                )
 
-        options = [
-            SelectOptionDict(
-                value=key,
-                label=f"{t['name']} ({LEAGUES[t['league']]})"
-                if len(self._leagues) > 1
-                else t["name"],
+        if user_input is not None:
+            team_id = user_input[CONF_TEAM_ID]
+            team_name = next(
+                (t["name"] for t in self._teams if t["id"] == team_id), team_id
             )
-            for key, t in self._teams_by_key.items()
-        ]
+
+            # Évite les doublons ligue+équipe
+            await self.async_set_unique_id(f"{self._league}_{team_id}")
+            self._abort_if_unique_id_configured()
+
+            return self.async_create_entry(
+                title=f"{team_name} ({LEAGUES[self._league]['name']})",
+                data={
+                    CONF_LEAGUE: self._league,
+                    CONF_TEAM_ID: team_id,
+                    CONF_TEAM_NAME: team_name,
+                },
+            )
+
+        # Charge la liste des équipes si pas encore fait
+        if not self._teams:
+            try:
+                self._teams = await self._fetch_teams()
+            except Exception:  # noqa: BLE001
+                errors["base"] = "cannot_connect"
+
+        if errors or not self._teams:
+            return self.async_show_form(
+                step_id="team",
+                data_schema=vol.Schema({}),
+                errors=errors,
+            )
+
         schema = vol.Schema(
             {
-                vol.Required(CONF_TEAMS): SelectSelector(
+                vol.Required(CONF_TEAM_ID): SelectSelector(
                     SelectSelectorConfig(
-                        options=options,
-                        multiple=True,
-                        mode=SelectSelectorMode.DROPDOWN,
+                        options=[
+                            SelectOptionDict(value=t["id"], label=t["name"])
+                            for t in sorted(self._teams, key=lambda x: x["name"])
+                        ],
+                        mode=SelectSelectorMode.LIST,
                     )
                 )
             }
         )
-        return self.async_show_form(step_id="teams", data_schema=schema, errors=errors)
+        return self.async_show_form(step_id="team", data_schema=schema)
+
+    async def _fetch_teams(self) -> list[dict]:
+        """Récupère la liste des équipes de la ligue via ESPN."""
+        assert self._league is not None
+        espn_id = LEAGUES[self._league]["espn_id"]
+        url = ESPN_TEAMS.format(base=ESPN_API_BASE, league_id=espn_id)
+        session = async_get_clientsession(self.hass)
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+
+        teams = []
+        for item in data.get("sports", [{}])[0].get("leagues", [{}])[0].get("teams", []):
+            team = item.get("team", {})
+            if team.get("id") and team.get("displayName"):
+                teams.append({"id": team["id"], "name": team["displayName"]})
+        return teams
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry) -> OptionsFlow:
-        return LigueFootOptionsFlow()
+    def async_get_options_flow(config_entry):
+        """Retourne le flux d'options."""
+        return LigueFootOptionsFlow(config_entry)
 
 
 class LigueFootOptionsFlow(OptionsFlow):
-    """Options : délai du rappel, service de notification, texte du message."""
+    """Gère les options modifiables après installation."""
+
+    def __init__(self, config_entry) -> None:
+        """Initialise le flux d'options."""
+        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        """Affiche les options disponibles."""
         if user_input is not None:
-            return self.async_create_entry(data=user_input)
+            return self.async_create_entry(title="", data=user_input)
 
-        # Services notify.* disponibles sur l'instance
-        notify_services = sorted(self.hass.services.async_services().get("notify", {}))
-        opts = self.config_entry.options
-
+        options = self.config_entry.options
         schema = vol.Schema(
             {
                 vol.Optional(
-                    CONF_NOTIFY_SERVICE,
-                    description={"suggested_value": opts.get(CONF_NOTIFY_SERVICE)},
-                ): SelectSelector(
-                    SelectSelectorConfig(
-                        options=notify_services,
-                        mode=SelectSelectorMode.DROPDOWN,
-                        custom_value=True,
-                    )
-                ),
-                vol.Required(
-                    CONF_REMINDER_MINUTES,
-                    default=opts.get(CONF_REMINDER_MINUTES, DEFAULT_REMINDER_MINUTES),
-                ): NumberSelector(
-                    NumberSelectorConfig(
-                        min=5,
-                        max=1440,
-                        step=5,
-                        unit_of_measurement="min",
-                        mode=NumberSelectorMode.BOX,
-                    )
-                ),
-                vol.Required(
-                    CONF_MESSAGE, default=opts.get(CONF_MESSAGE, DEFAULT_MESSAGE)
-                ): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT)),
-                # Lumières : Philips Hue, Ambilight (Philips TV), toute entité light
+                    "notify_kickoff",
+                    default=options.get("notify_kickoff", True),
+                ): bool,
                 vol.Optional(
-                    CONF_LIGHTS,
-                    description={"suggested_value": opts.get(CONF_LIGHTS)},
-                ): EntitySelector(EntitySelectorConfig(domain="light", multiple=True)),
-                vol.Required(
-                    CONF_LIGHT_KICKOFF, default=opts.get(CONF_LIGHT_KICKOFF, True)
-                ): BooleanSelector(),
-                vol.Required(
-                    CONF_LIGHT_GOAL, default=opts.get(CONF_LIGHT_GOAL, True)
-                ): BooleanSelector(),
-                vol.Required(
-                    CONF_LIGHT_PREMATCH, default=opts.get(CONF_LIGHT_PREMATCH, 0)
-                ): NumberSelector(
-                    NumberSelectorConfig(
-                        min=0,
-                        max=240,
-                        step=5,
-                        unit_of_measurement="min",
-                        mode=NumberSelectorMode.BOX,
-                    )
-                ),
-                vol.Required(
-                    CONF_LIGHT_RESTORE, default=opts.get(CONF_LIGHT_RESTORE, True)
-                ): BooleanSelector(),
+                    "notify_goal",
+                    default=options.get("notify_goal", True),
+                ): bool,
+                vol.Optional(
+                    "notify_red_card",
+                    default=options.get("notify_red_card", False),
+                ): bool,
+                vol.Optional(
+                    "notify_match_end",
+                    default=options.get("notify_match_end", True),
+                ): bool,
+                vol.Optional(
+                    "notify_service",
+                    default=options.get("notify_service", ""),
+                ): str,
+                vol.Optional(
+                    "silence_start",
+                    default=options.get("silence_start", "23:00"),
+                ): str,
+                vol.Optional(
+                    "silence_end",
+                    default=options.get("silence_end", "07:00"),
+                ): str,
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)
