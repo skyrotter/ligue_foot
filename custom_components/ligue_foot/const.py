@@ -8,6 +8,12 @@ DOMAIN = "ligue_foot"
 LEAGUES = {
     "fra.1": "Ligue 1",
     "fra.2": "Ligue 2",
+    "eng.1": "Premier League",
+    "esp.1": "LaLiga",
+    "ger.1": "Bundesliga",
+    "ita.1": "Serie A",
+    "por.1": "Liga Portugal",
+    "bel.1": "Jupiler Pro League",
 }
 
 
