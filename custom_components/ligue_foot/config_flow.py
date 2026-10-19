@@ -9,6 +9,9 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFl
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
+    BooleanSelector,
+    EntitySelector,
+    EntitySelectorConfig,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -24,6 +27,11 @@ from homeassistant.helpers.selector import (
 from .api import EspnApi, EspnApiError
 from .const import (
     CONF_LEAGUES,
+    CONF_LIGHT_GOAL,
+    CONF_LIGHT_KICKOFF,
+    CONF_LIGHT_PREMATCH,
+    CONF_LIGHT_RESTORE,
+    CONF_LIGHTS,
     CONF_MESSAGE,
     CONF_NOTIFY_SERVICE,
     CONF_REMINDER_MINUTES,
@@ -166,6 +174,31 @@ class LigueFootOptionsFlow(OptionsFlow):
                 vol.Required(
                     CONF_MESSAGE, default=opts.get(CONF_MESSAGE, DEFAULT_MESSAGE)
                 ): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT)),
+                # Lumières : Philips Hue, Ambilight (Philips TV), toute entité light
+                vol.Optional(
+                    CONF_LIGHTS,
+                    description={"suggested_value": opts.get(CONF_LIGHTS)},
+                ): EntitySelector(EntitySelectorConfig(domain="light", multiple=True)),
+                vol.Required(
+                    CONF_LIGHT_KICKOFF, default=opts.get(CONF_LIGHT_KICKOFF, True)
+                ): BooleanSelector(),
+                vol.Required(
+                    CONF_LIGHT_GOAL, default=opts.get(CONF_LIGHT_GOAL, True)
+                ): BooleanSelector(),
+                vol.Required(
+                    CONF_LIGHT_PREMATCH, default=opts.get(CONF_LIGHT_PREMATCH, 0)
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0,
+                        max=240,
+                        step=5,
+                        unit_of_measurement="min",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Required(
+                    CONF_LIGHT_RESTORE, default=opts.get(CONF_LIGHT_RESTORE, True)
+                ): BooleanSelector(),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)
