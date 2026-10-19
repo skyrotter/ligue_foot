@@ -7,9 +7,10 @@
  *  - custom:ligue-foot-form-card        (entité « Dernier résultat »)
  *  - custom:ligue-foot-standings-card   (entité « Classement »)
  *  - custom:ligue-foot-matchday-card    (entité « Journée »)
+ *  - custom:ligue-foot-teams-card       (aucune entité : détecte tes équipes)
  */
 
-const LF_VERSION = "0.2.0";
+const LF_VERSION = "0.3.0";
 
 // ---------------------------------------------------------------- Traductions
 const LF_TEXT = {
@@ -567,11 +568,149 @@ function lfFindEntity(hass, re) {
 }
 
 // -------------------------------------------------------------- Enregistrement
+// ------------------------------------------------------------- Mes équipes
+Object.assign(LF_TEXT.fr, {
+  teamsName: "Mes équipes",
+  teamsDesc: "Toutes tes équipes favorites : forme, prochain match et jour de match.",
+  teamsTitle: "Mes équipes",
+  teamsNone: "Aucune équipe trouvée (intégration Ligue Foot configurée ?)",
+  matchToday: "Jour de match",
+});
+Object.assign(LF_TEXT.en, {
+  teamsName: "My teams",
+  teamsDesc: "All your favorite teams: form, next match and match day.",
+  teamsTitle: "My teams",
+  teamsNone: "No team found (is the Ligue Foot integration set up?)",
+  matchToday: "Match day",
+});
+
+const LF_TEAMS_STYLE = "<style>" +
+  ".tm-h{padding:14px 16px 8px;font-weight:700;font-size:1.1em;color:var(--lf-title)}" +
+  ".tm{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid var(--lf-line)}" +
+  ".tm .logo{width:32px;height:32px;object-fit:contain}" +
+  ".tm-n{font-weight:600;color:var(--lf-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+  ".tm-s{font-size:.85em;color:var(--lf-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+  ".tm-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px}" +
+  ".tm-ps{display:flex;gap:3px}" +
+  ".tm-p{font-style:normal;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff}" +
+  ".rV{background:var(--lf-win)}.rN{background:var(--lf-draw)}.rD{background:var(--lf-loss)}" +
+  ".tm-b{font-size:.7em;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:var(--lf-accent);color:var(--lf-rank-fg)}" +
+  ".tm-b.live{background:var(--lf-loss);color:#fff}" +
+  "@container (max-width:340px){.tm-ps{display:none}}" +
+  "</style>";
+
+class LigueFootTeamsCard extends LigueFootBase {
+  static getConfigElement() {
+    return lfEditor("teams");
+  }
+
+  static getStubConfig() {
+    return {};
+  }
+
+  setConfig(config) {
+    this._config = config || {};
+    this._lastSig = null;
+    this._render();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    const sig = JSON.stringify(this._teams(hass));
+    if (sig !== this._lastSig) {
+      this._lastSig = sig;
+      this._render();
+    }
+  }
+
+  // Détecte automatiquement les capteurs Ligue Foot : aucune entité à choisir
+  _teams(hass) {
+    const out = {};
+    for (const [id, st] of Object.entries((hass && hass.states) || {})) {
+      if (!id.startsWith("sensor.")) continue;
+      const a = st.attributes;
+      const reg = hass.entities && hass.entities[id];
+      if (!a || !a.team || (reg && reg.platform !== "ligue_foot")) continue;
+      const e = out[a.team] || (out[a.team] = { name: a.team, logo: a.team_logo || "" });
+      if (a.last_matches) {
+        e.form = a.form || [];
+        if (a.team_logo) e.logo = a.team_logo;
+      } else if (a.kickoff && a.opponent) {
+        e.next = a;
+        if (a.team_logo) e.logo = a.team_logo;
+      }
+    }
+    return Object.values(out);
+  }
+
+  _render() {
+    if (!this._config || !this._hass) return;
+    const t = this._t;
+    const teams = this._teams(this._hass);
+    if (!teams.length) {
+      this._frame('<div class="err">' + t.teamsNone + "</div>");
+      return;
+    }
+    const locale = lfLocale(this._hass);
+    const now = new Date();
+    const info = teams.map((tm) => {
+      const n = tm.next;
+      const d = n ? new Date(n.kickoff) : null;
+      const live = !!n && n.match_state === "in";
+      const today = !!d && d.toDateString() === now.toDateString();
+      return { tm, n, d, live, today };
+    });
+    info.sort((x, y) => {
+      const rk = (z) => (z.live ? 0 : z.today ? 1 : 2);
+      if (rk(x) !== rk(y)) return rk(x) - rk(y);
+      return (x.d ? x.d.getTime() : Infinity) - (y.d ? y.d.getTime() : Infinity);
+    });
+    let html = '<div class="tm-h">' + lfEsc(this._config.name || t.teamsTitle) + "</div>";
+    for (const z of info) {
+      let sub = t.noMatch;
+      if (z.n) {
+        const opp = (z.n.at_home ? "vs " : "@ ") + z.n.opponent;
+        if (z.live) {
+          sub = t.live + " · " + (z.n.home_score ?? 0) + " - " + (z.n.away_score ?? 0) + " · " + opp;
+        } else {
+          const when = z.today
+            ? z.d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
+            : z.d.toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" }) +
+              " " + z.d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+          sub = opp + " · " + when;
+        }
+      }
+      const badge = z.live
+        ? '<span class="tm-b live">' + t.live + "</span>"
+        : z.today
+        ? '<span class="tm-b">' + t.matchToday + "</span>"
+        : "";
+      const pills = (z.tm.form || [])
+        .slice(-5)
+        .map((r) => '<i class="tm-p r' + lfEsc(r) + '">' + lfEsc(r) + "</i>")
+        .join("");
+      html +=
+        '<div class="tm">' + lfLogo(z.tm.logo, 32) +
+        '<div><div class="tm-n">' + lfEsc(z.tm.name) + '</div><div class="tm-s">' + lfEsc(sub) + "</div></div>" +
+        '<div class="tm-r">' + badge + '<div class="tm-ps">' + pills + "</div></div></div>";
+    }
+    this._frame(LF_TEAMS_STYLE + html);
+  }
+}
+
+// L'éditeur de cette carte n'a pas de champ « entité » (détection automatique)
+const LF_EDITOR_SCHEMA = LigueFootEditor.prototype._schema;
+LigueFootEditor.prototype._schema = function () {
+  const s = LF_EDITOR_SCHEMA.call(this);
+  return this.kind === "teams" ? s.filter((f) => f.name !== "entity") : s;
+};
+
 const LF_CARDS = [
   ["ligue-foot-next-match-card", LigueFootNextMatchCard, "nextName", "nextDesc"],
   ["ligue-foot-form-card", LigueFootFormCard, "formName", "formDesc"],
   ["ligue-foot-standings-card", LigueFootStandingsCard, "standingsName", "standingsDesc"],
   ["ligue-foot-matchday-card", LigueFootMatchdayCard, "matchdayName", "matchdayDesc"],
+  ["ligue-foot-teams-card", LigueFootTeamsCard, "teamsName", "teamsDesc"],
 ];
 
 // On déclare les cartes une fois l'interface de HA démarrée : HA installe un
