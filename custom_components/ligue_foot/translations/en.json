@@ -28,7 +28,12 @@
         "data": {
           "notify_service": "Notification service",
           "reminder_minutes": "Reminder before kickoff (minutes)",
-          "message": "Message text"
+          "message": "Message text",
+          "lights": "Lights (Philips Hue, Ambilight, ...)",
+          "light_kickoff": "Team colors at kickoff",
+          "light_goal": "Flash when your team scores",
+          "light_prematch": "Pre-match mood (minutes, 0 = off)",
+          "light_restore": "Restore lights when the match ends"
         }
       }
     }
