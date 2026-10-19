@@ -1,14 +1,8 @@
 {
   "name": "Ligue Foot",
-  "country": [
-    "FR",
-    "BE",
-    "DE",
-    "ES",
-    "GB",
-    "IT",
-    "PT"
-  ],
-  "homeassistant": "2024.8.0",
-  "render_readme": true
+  "domains": ["sensor", "binary_sensor", "calendar"],
+  "documentation": "https://github.com/skyrotter/ligue_foot",
+  "codeowners": ["@skyrotter"],
+  "iot_class": "cloud_polling",
+  "homeassistant": "2024.1.0"
 }
