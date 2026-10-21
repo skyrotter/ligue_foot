@@ -68,7 +68,8 @@ class LightManager:
         self.coordinator = coordinator
         self._colors: dict[tuple[str, str], tuple] = {}
         self._scores: dict[str, tuple[int, int]] = {}
-        self._active: dict | None = None  # {"id": match, "live": bool}
+        self._active: dict | None = None  # {"id": match, "live": bool, "team_id": str}
+        self._yellow_cards: dict[str, tuple[int, int]] = {}  # Suivi des cartons jaunes
         self._snapshot_taken = False
         self._flashing = False
         self._triggers: list = []
@@ -141,16 +142,30 @@ class LightManager:
             LIVE_INTERVAL if live else timedelta(minutes=UPDATE_INTERVAL_MINUTES)
         )
 
-        # Buts
+        # Buts et événements du match
         old, new = self._scores, {}
+        old_yellow = self._yellow_cards
+        new_yellow = {}
+
         for team, m in live:
             score = (_int(m["home"]["score"]), _int(m["away"]["score"]))
             new[m["id"]] = score
             prev = old.get(m["id"])
             side = 0 if m["home"]["id"] == team["id"] else 1
+
+            # Détecte les buts
             if prev is not None and score[side] > prev[side] and self._opt(CONF_LIGHT_GOAL, True):
                 self.hass.async_create_task(self._flash(team))
+
+            # Détecte les cartons jaunes
+            yellow_cards = (_int(m["home"].get("yellow_cards", 0)), _int(m["away"].get("yellow_cards", 0)))
+            new_yellow[m["id"]] = yellow_cards
+            prev_yellow = old_yellow.get(m["id"])
+            if prev_yellow is not None and yellow_cards[side] > prev_yellow[side]:
+                self.hass.async_create_task(self._flash_yellow_card(team))
+
         self._scores = new
+        self._yellow_cards = new_yellow
 
         # Coup d'envoi / fin de match
         if live:
@@ -160,7 +175,21 @@ class LightManager:
             elif self._opt(CONF_LIGHT_KICKOFF, True):
                 self.hass.async_create_task(self._begin(team, m, True))
         elif self._active and self._active["live"]:
-            self.hass.async_create_task(self._finish())
+            # Récupère les données du match pour l'effet de fin
+            match_data = None
+            for m_list in [live, upcoming]:
+                for _, m in m_list:
+                    if m["id"] == self._active["id"]:
+                        match_data = m
+                        break
+            # Cherche aussi dans les matchs terminés
+            if not match_data and self._active:
+                for team in self.coordinator.teams:
+                    for m in self.coordinator.data.get("matches", {}).get(team["league"], []):
+                        if m["id"] == self._active["id"] and m["state"] == "post":
+                            match_data = m
+                            break
+            self.hass.async_create_task(self._finish(match_data))
 
         # Déclencheurs à venir : ambiance avant-match + rafraîchissement au coup d'envoi
         minutes = _int(self._opt(CONF_LIGHT_PREMATCH, 0))
@@ -190,13 +219,36 @@ class LightManager:
 
     @callback
     def _failsafe_cb(self, _now) -> None:
-        self.hass.async_create_task(self._finish())
+        self.hass.async_create_task(self._finish(None))
+
+    async def _flash_yellow_card(self, team: dict) -> None:
+        """Crée un effet flash orange pour un carton jaune."""
+        if self._flashing:
+            return
+        self._flashing = True
+        try:
+            # Orange pour carton jaune (255, 165, 0)
+            orange = (255, 165, 0)
+            white = (255, 255, 255)
+            for _ in range(2):
+                await self._set(orange)
+                await asyncio.sleep(0.4)
+                await self._set(white)
+                await asyncio.sleep(0.4)
+        finally:
+            self._flashing = False
+
+    def _get_opponent(self, match: dict, our_team_id: str) -> dict | None:
+        """Retourne l'équipe adverse."""
+        if match["home"]["id"] == our_team_id:
+            return match["away"]
+        return match["home"]
 
     # ------------------------------------------------------------ effets
     async def _begin(self, team: dict, match: dict, live: bool) -> None:
         if self._active is None:
             await self._snapshot()
-        self._active = {"id": match["id"], "live": live}
+        self._active = {"id": match["id"], "live": live, "team_id": team["id"]}
         await self._set(self._palette_for(team)[0])
         # Sécurité : on rend les lampes 3 h après le coup d'envoi quoi qu'il arrive
         if self._failsafe:
@@ -205,14 +257,54 @@ class LightManager:
             self.hass, self._failsafe_cb, match["kickoff"] + timedelta(hours=3)
         )
 
-    async def _finish(self) -> None:
+    async def _finish(self, match_data: dict | None = None) -> None:
         if self._active is None:
             return
+
+        # Flash avec les couleurs de l'équipe gagnante à la fin du match
+        if match_data and match_data.get("winner") and match_data["winner"] != "draw":
+            winner_side = match_data["winner"]  # "home" ou "away"
+            winner_team_data = match_data[winner_side]
+            # Crée une équipe fictive avec l'ID du gagnant pour palette lookup
+            winner_team = {"id": winner_team_data["id"], "league": match_data.get("league", "")}
+            await self._flash_winner(winner_team)
+
         self._active = None
         if self._failsafe:
             self._failsafe()
             self._failsafe = None
         await self._restore()
+
+    async def _flash_winner(self, winner_team: dict) -> None:
+        """Crée un effet flash avec les couleurs de l'équipe gagnante."""
+        if self._flashing:
+            return
+        self._flashing = True
+        try:
+            main, alt = self._palette_for(winner_team)
+            # Plus long et plus rapide pour célébrer la victoire
+            for _ in range(4):
+                await self._set(main)
+                await asyncio.sleep(0.3)
+                await self._set(alt)
+                await asyncio.sleep(0.3)
+        finally:
+            self._flashing = False
+
+    async def _flash_opponent(self, opponent_team: dict) -> None:
+        """Crée un effet flash avec les couleurs de l'équipe adverse."""
+        if self._flashing:
+            return
+        self._flashing = True
+        try:
+            main, alt = self._palette_for(opponent_team)
+            for _ in range(2):
+                await self._set(main)
+                await asyncio.sleep(0.5)
+                await self._set(alt)
+                await asyncio.sleep(0.5)
+        finally:
+            self._flashing = False
 
     async def _flash(self, team: dict) -> None:
         if self._flashing:
