@@ -2,19 +2,42 @@
 
 DOMAIN = "ligue_foot"
 
-# Ligues supportées
+# Ligues et compétitions supportées
+# Ligues nationales françaises
 LEAGUE_LIGUE1 = "ligue1"
 LEAGUE_LIGUE2 = "ligue2"
 
+# Compétitions européennes
+LEAGUE_UEFA_CL = "uefa_cl"  # Champions League
+LEAGUE_UEFA_EL = "uefa_el"  # Europa League
+LEAGUE_UEFA_CONF = "uefa_conf"  # Conference League
+
 LEAGUES = {
-    LEAGUE_LIGUE1: {"name": "Ligue 1", "espn_id": "FRA.1"},
-    LEAGUE_LIGUE2: {"name": "Ligue 2", "espn_id": "FRA.2"},
+    # Ligues nationales
+    LEAGUE_LIGUE1: {"name": "Ligue 1", "espn_id": "FRA.1", "country": "FRA"},
+    LEAGUE_LIGUE2: {"name": "Ligue 2", "espn_id": "FRA.2", "country": "FRA"},
+
+    # Compétitions européennes
+    LEAGUE_UEFA_CL: {"name": "UEFA Champions League", "espn_id": "UEFA.CLH", "country": "UEFA"},
+    LEAGUE_UEFA_EL: {"name": "UEFA Europa League", "espn_id": "UEFA.EL", "country": "UEFA"},
+    LEAGUE_UEFA_CONF: {"name": "UEFA Conference League", "espn_id": "UEFA.CONF", "country": "UEFA"},
 }
 
 # Config flow
 CONF_LEAGUE = "league"
+CONF_LEAGUES = "leagues"  # Multiple leagues selection
 CONF_TEAM_ID = "team_id"
 CONF_TEAM_NAME = "team_name"
+
+# Light configuration
+CONF_LIGHTS = "lights"
+CONF_LIGHT_GOAL = "light_goal"
+CONF_LIGHT_KICKOFF = "light_kickoff"
+CONF_LIGHT_PREMATCH = "light_prematch"
+CONF_LIGHT_RESTORE = "light_restore"
+
+# Update intervals
+UPDATE_INTERVAL_MINUTES = 5
 
 # Intervalles de polling (secondes)
 SCAN_INTERVAL_DEFAULT = 180       # 3 min au repos
