@@ -24,6 +24,11 @@ from .const import (
     DOMAIN,
     ESPN_API_BASE,
     ESPN_TEAMS,
+    LEAGUE_LIGUE1,
+    LEAGUE_LIGUE2,
+    LEAGUE_UEFA_CL,
+    LEAGUE_UEFA_CONF,
+    LEAGUE_UEFA_EL,
     LEAGUES,
 )
 
@@ -48,20 +53,60 @@ class LigueFootConfigFlow(ConfigFlow, domain=DOMAIN):
             self._league = user_input[CONF_LEAGUE]
             return await self.async_step_team()
 
+        # Organise les ligues par catégorie
+        league_options = []
+
+        # Ligues nationales françaises
+        league_options.append(
+            SelectOptionDict(
+                value=LEAGUE_LIGUE1,
+                label=f"🇫🇷 {LEAGUES[LEAGUE_LIGUE1]['name']}"
+            )
+        )
+        league_options.append(
+            SelectOptionDict(
+                value=LEAGUE_LIGUE2,
+                label=f"🇫🇷 {LEAGUES[LEAGUE_LIGUE2]['name']}"
+            )
+        )
+
+        # Compétitions européennes
+        league_options.append(
+            SelectOptionDict(
+                value=LEAGUE_UEFA_CL,
+                label=f"🇪🇺 {LEAGUES[LEAGUE_UEFA_CL]['name']}"
+            )
+        )
+        league_options.append(
+            SelectOptionDict(
+                value=LEAGUE_UEFA_EL,
+                label=f"🇪🇺 {LEAGUES[LEAGUE_UEFA_EL]['name']}"
+            )
+        )
+        league_options.append(
+            SelectOptionDict(
+                value=LEAGUE_UEFA_CONF,
+                label=f"🇪🇺 {LEAGUES[LEAGUE_UEFA_CONF]['name']}"
+            )
+        )
+
         schema = vol.Schema(
             {
                 vol.Required(CONF_LEAGUE): SelectSelector(
                     SelectSelectorConfig(
-                        options=[
-                            SelectOptionDict(value=k, label=v["name"])
-                            for k, v in LEAGUES.items()
-                        ],
+                        options=league_options,
                         mode=SelectSelectorMode.LIST,
                     )
                 )
             }
         )
-        return self.async_show_form(step_id="user", data_schema=schema)
+        return self.async_show_form(
+            step_id="user",
+            data_schema=schema,
+            description_placeholders={
+                "supported_leagues": "Ligue 1, Ligue 2, Champions League, Europa League, Conference League"
+            },
+        )
 
     async def async_step_team(
         self, user_input: dict[str, Any] | None = None
