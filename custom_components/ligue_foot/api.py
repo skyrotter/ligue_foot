@@ -41,24 +41,65 @@ def _parse_event(event: dict, league: str) -> dict | None:
         competitors = {c["homeAway"]: c for c in comp["competitors"]}
         home, away = competitors["home"], competitors["away"]
         kickoff = datetime.fromisoformat(event["date"].replace("Z", "+00:00"))
+
+        # Détermine le gagnant
+        winner = None
+        home_score = _score(home.get("score"))
+        away_score = _score(away.get("score"))
+        if home_score is not None and away_score is not None:
+            if home_score > away_score:
+                winner = "home"
+            elif away_score > home_score:
+                winner = "away"
+            else:
+                winner = "draw"
+
+        # Extrait les événements du match (buts, cartons, etc.)
+        match_events = []
+        for event_item in comp.get("videos", []):
+            # Les vidéos/événements ESPN contiennent buts et cartons
+            match_events.append({
+                "type": event_item.get("type"),
+                "description": event_item.get("description"),
+            })
+
+        # Extrait les statistiques pour les cartons jaunes et expulsions
+        yellow_cards = {"home": 0, "away": 0}
+        red_cards = {"home": 0, "away": 0}
+
+        for comp_team in comp.get("competitors", []):
+            side = comp_team["homeAway"]
+            stats = comp_team.get("statistics", [])
+            for stat in stats:
+                if stat.get("name") == "yellowCards":
+                    yellow_cards[side] = int(stat.get("value", 0) or 0)
+                elif stat.get("name") == "redCards":
+                    red_cards[side] = int(stat.get("value", 0) or 0)
+
         return {
             "id": str(event["id"]),
             "league": league,
             "kickoff": kickoff,
             "state": comp["status"]["type"]["state"],  # pre / in / post
             "venue": (comp.get("venue") or {}).get("fullName"),
+            "winner": winner,  # "home", "away", "draw", or None
             "home": {
                 "id": str(home["team"]["id"]),
                 "name": home["team"]["displayName"],
-                "score": _score(home.get("score")),
+                "score": home_score,
                 "logo": _logo(home["team"]),
+                "yellow_cards": yellow_cards["home"],
+                "red_cards": red_cards["home"],
             },
             "away": {
                 "id": str(away["team"]["id"]),
                 "name": away["team"]["displayName"],
-                "score": _score(away.get("score")),
+                "score": away_score,
                 "logo": _logo(away["team"]),
+                "yellow_cards": yellow_cards["away"],
+                "red_cards": red_cards["away"],
             },
+            "match_events": match_events,
         }
     except (KeyError, IndexError, ValueError, TypeError):
         return None
