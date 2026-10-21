@@ -24,8 +24,14 @@ from .const import (
     DOMAIN,
     ESPN_API_BASE,
     ESPN_TEAMS,
+    LEAGUE_BUNDESLIGA,
+    LEAGUE_JUPILER_PRO,
+    LEAGUE_LALIGA,
+    LEAGUE_LIGA_PORTUGAL,
     LEAGUE_LIGUE1,
     LEAGUE_LIGUE2,
+    LEAGUE_PREMIER_LEAGUE,
+    LEAGUE_SERIE_A,
     LEAGUE_UEFA_CL,
     LEAGUE_UEFA_CONF,
     LEAGUE_UEFA_EL,
@@ -69,6 +75,23 @@ class LigueFootConfigFlow(ConfigFlow, domain=DOMAIN):
                 label=f"🇫🇷 {LEAGUES[LEAGUE_LIGUE2]['name']}"
             )
         )
+
+        # Autres ligues nationales
+        other_leagues = [
+            (LEAGUE_PREMIER_LEAGUE, "🇬🇧"),
+            (LEAGUE_LALIGA, "🇪🇸"),
+            (LEAGUE_BUNDESLIGA, "🇩🇪"),
+            (LEAGUE_SERIE_A, "🇮🇹"),
+            (LEAGUE_LIGA_PORTUGAL, "🇵🇹"),
+            (LEAGUE_JUPILER_PRO, "🇧🇪"),
+        ]
+        for league_key, flag in other_leagues:
+            league_options.append(
+                SelectOptionDict(
+                    value=league_key,
+                    label=f"{flag} {LEAGUES[league_key]['name']}"
+                )
+            )
 
         # Compétitions européennes
         league_options.append(

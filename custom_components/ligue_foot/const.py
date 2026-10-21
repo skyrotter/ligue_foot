@@ -7,6 +7,14 @@ DOMAIN = "ligue_foot"
 LEAGUE_LIGUE1 = "ligue1"
 LEAGUE_LIGUE2 = "ligue2"
 
+# Autres ligues nationales
+LEAGUE_PREMIER_LEAGUE = "premier_league"
+LEAGUE_LALIGA = "laliga"
+LEAGUE_BUNDESLIGA = "bundesliga"
+LEAGUE_SERIE_A = "serie_a"
+LEAGUE_LIGA_PORTUGAL = "liga_portugal"
+LEAGUE_JUPILER_PRO = "jupiler_pro"
+
 # Compétitions européennes
 LEAGUE_UEFA_CL = "uefa_cl"  # Champions League
 LEAGUE_UEFA_EL = "uefa_el"  # Europa League
@@ -16,6 +24,14 @@ LEAGUES = {
     # Ligues nationales
     LEAGUE_LIGUE1: {"name": "Ligue 1", "espn_id": "FRA.1", "country": "FRA"},
     LEAGUE_LIGUE2: {"name": "Ligue 2", "espn_id": "FRA.2", "country": "FRA"},
+
+    # Autres ligues nationales
+    LEAGUE_PREMIER_LEAGUE: {"name": "Premier League", "espn_id": "ENG.1", "country": "ENG"},
+    LEAGUE_LALIGA: {"name": "LaLiga", "espn_id": "ESP.1", "country": "ESP"},
+    LEAGUE_BUNDESLIGA: {"name": "Bundesliga", "espn_id": "GER.1", "country": "GER"},
+    LEAGUE_SERIE_A: {"name": "Serie A", "espn_id": "ITA.1", "country": "ITA"},
+    LEAGUE_LIGA_PORTUGAL: {"name": "Liga Portugal", "espn_id": "POR.1", "country": "POR"},
+    LEAGUE_JUPILER_PRO: {"name": "Jupiler Pro League", "espn_id": "BEL.1", "country": "BEL"},
 
     # Compétitions européennes
     LEAGUE_UEFA_CL: {"name": "UEFA Champions League", "espn_id": "UEFA.CLH", "country": "UEFA"},
