@@ -21,22 +21,22 @@ LEAGUE_UEFA_EL = "uefa_el"  # Europa League
 LEAGUE_UEFA_CONF = "uefa_conf"  # Conference League
 
 LEAGUES = {
-    # Ligues nationales
+        # Ligues nationales
     LEAGUE_LIGUE1: {"name": "Ligue 1", "espn_id": "FRA.1", "country": "FRA"},
-    LEAGUE_LIGUE2: {"name": "Ligue 2", "espn_id": "FRA.2", "country": "FRA"},
+        LEAGUE_LIGUE2: {"name": "Ligue 2", "espn_id": "FRA.2", "country": "FRA"},
 
-    # Autres ligues nationales
-    LEAGUE_PREMIER_LEAGUE: {"name": "Premier League", "espn_id": "ENG.1", "country": "ENG"},
-    LEAGUE_LALIGA: {"name": "LaLiga", "espn_id": "ESP.1", "country": "ESP"},
-    LEAGUE_BUNDESLIGA: {"name": "Bundesliga", "espn_id": "GER.1", "country": "GER"},
-    LEAGUE_SERIE_A: {"name": "Serie A", "espn_id": "ITA.1", "country": "ITA"},
-    LEAGUE_LIGA_PORTUGAL: {"name": "Liga Portugal", "espn_id": "POR.1", "country": "POR"},
-    LEAGUE_JUPILER_PRO: {"name": "Jupiler Pro League", "espn_id": "BEL.1", "country": "BEL"},
+        # Autres ligues nationales
+        LEAGUE_PREMIER_LEAGUE: {"name": "Premier League", "espn_id": "ENG.1", "country": "ENG"},
+        LEAGUE_LALIGA: {"name": "LaLiga", "espn_id": "ESP.1", "country": "ESP"},
+        LEAGUE_BUNDESLIGA: {"name": "Bundesliga", "espn_id": "GER.1", "country": "GER"},
+        LEAGUE_SERIE_A: {"name": "Serie A", "espn_id": "ITA.1", "country": "ITA"},
+        LEAGUE_LIGA_PORTUGAL: {"name": "Liga Portugal", "espn_id": "POR.1", "country": "POR"},
+        LEAGUE_JUPILER_PRO: {"name": "Jupiler Pro League", "espn_id": "BEL.1", "country": "BEL"},
 
-    # Compétitions européennes
-    LEAGUE_UEFA_CL: {"name": "UEFA Champions League", "espn_id": "UEFA.CLH", "country": "UEFA"},
-    LEAGUE_UEFA_EL: {"name": "UEFA Europa League", "espn_id": "UEFA.EL", "country": "UEFA"},
-    LEAGUE_UEFA_CONF: {"name": "UEFA Conference League", "espn_id": "UEFA.CONF", "country": "UEFA"},
+        # Compétitions européennes
+        LEAGUE_UEFA_CL: {"name": "UEFA Champions League", "espn_id": "UEFA.CHAMPIONS", "country": "UEFA"},
+        LEAGUE_UEFA_EL: {"name": "UEFA Europa League", "espn_id": "UEFA.EUROPA", "country": "UEFA"},
+        LEAGUE_UEFA_CONF: {"name": "UEFA Conference League", "espn_id": "UEFA.EUROPA.CONF", "country": "UEFA"},
 }
 
 # Config flow
@@ -72,6 +72,7 @@ SYNC_STATUS_PROVIDER_UNAVAILABLE = "provider_unavailable"
 
 # URL de base ESPN
 ESPN_API_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer"
+ESPN_API_BASE_V2 = "https://site.api.espn.com/apis/v2/sports/soccer"  # utilisé pour les standings
 ESPN_SCOREBOARD = "{base}/{league_id}/scoreboard"
 ESPN_STANDINGS = "{base}/{league_id}/standings"
 ESPN_TEAMS = "{base}/{league_id}/teams"
