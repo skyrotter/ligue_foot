@@ -1,13 +1,13 @@
 {
-  "domain": "ligue_foot",
-  "name": "Ligue Foot",
-  "version": "0.1.0",
-  "documentation": "https://github.com/skyrotter/ligue_foot",
-  "issue_tracker": "https://github.com/skyrotter/ligue_foot/issues",
-  "codeowners": ["@skyrotter"],
-  "config_flow": true,
-  "iot_class": "cloud_polling",
-  "requirements": [],
-  "dependencies": [],
-  "homeassistant": "2024.1.0"
+    "domain": "ligue_foot",
+    "name": "Ligue Foot",
+    "version": "1.2.1",
+    "documentation": "https://github.com/skyrotter/ligue_foot",
+    "issue_tracker": "https://github.com/skyrotter/ligue_foot/issues",
+    "codeowners": ["@skyrotter"],
+    "config_flow": true,
+    "iot_class": "cloud_polling",
+    "requirements": [],
+    "dependencies": [],
+    "homeassistant": "2024.1.0"
 }
