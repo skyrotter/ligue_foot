@@ -86,7 +86,8 @@ class LigueFootCalendar(CoordinatorEntity[LigueFootCoordinator], CalendarEntity)
         home = match.get("home_team", "?")
         away = match.get("away_team", "?")
         parts = []
-        if match.get("matchday"): parts.append(f"J{\match['matchday']}")
+        if match.get("matchday"): 
+            parts.append(f"J{match['matchday']}")
         if match.get("venue"): parts.append(match["venue"])
         return CalendarEvent(
             start=start, end=end,
