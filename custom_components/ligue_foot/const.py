@@ -20,23 +20,22 @@ LEAGUE_UEFA_CL = "uefa_cl"  # Champions League
 LEAGUE_UEFA_EL = "uefa_el"  # Europa League
 LEAGUE_UEFA_CONF = "uefa_conf"  # Conference League
 
+# Les identifiants ESPN (espn_id) sont en minuscules, comme dans l'API ESPN.
 LEAGUES = {
-        # Ligues nationales
-    LEAGUE_LIGUE1: {"name": "Ligue 1", "espn_id": "FRA.1", "country": "FRA"},
-        LEAGUE_LIGUE2: {"name": "Ligue 2", "espn_id": "FRA.2", "country": "FRA"},
-
-        # Autres ligues nationales
-        LEAGUE_PREMIER_LEAGUE: {"name": "Premier League", "espn_id": "ENG.1", "country": "ENG"},
-        LEAGUE_LALIGA: {"name": "LaLiga", "espn_id": "ESP.1", "country": "ESP"},
-        LEAGUE_BUNDESLIGA: {"name": "Bundesliga", "espn_id": "GER.1", "country": "GER"},
-        LEAGUE_SERIE_A: {"name": "Serie A", "espn_id": "ITA.1", "country": "ITA"},
-        LEAGUE_LIGA_PORTUGAL: {"name": "Liga Portugal", "espn_id": "POR.1", "country": "POR"},
-        LEAGUE_JUPILER_PRO: {"name": "Jupiler Pro League", "espn_id": "BEL.1", "country": "BEL"},
-
-        # Compétitions européennes
-        LEAGUE_UEFA_CL: {"name": "UEFA Champions League", "espn_id": "UEFA.CHAMPIONS", "country": "UEFA"},
-        LEAGUE_UEFA_EL: {"name": "UEFA Europa League", "espn_id": "UEFA.EUROPA", "country": "UEFA"},
-        LEAGUE_UEFA_CONF: {"name": "UEFA Conference League", "espn_id": "UEFA.EUROPA.CONF", "country": "UEFA"},
+    # Ligues nationales
+    LEAGUE_LIGUE1: {"name": "Ligue 1", "espn_id": "fra.1", "country": "FRA"},
+    LEAGUE_LIGUE2: {"name": "Ligue 2", "espn_id": "fra.2", "country": "FRA"},
+    # Autres ligues nationales
+    LEAGUE_PREMIER_LEAGUE: {"name": "Premier League", "espn_id": "eng.1", "country": "ENG"},
+    LEAGUE_LALIGA: {"name": "LaLiga", "espn_id": "esp.1", "country": "ESP"},
+    LEAGUE_BUNDESLIGA: {"name": "Bundesliga", "espn_id": "ger.1", "country": "GER"},
+    LEAGUE_SERIE_A: {"name": "Serie A", "espn_id": "ita.1", "country": "ITA"},
+    LEAGUE_LIGA_PORTUGAL: {"name": "Liga Portugal", "espn_id": "por.1", "country": "POR"},
+    LEAGUE_JUPILER_PRO: {"name": "Jupiler Pro League", "espn_id": "bel.1", "country": "BEL"},
+    # Compétitions européennes
+    LEAGUE_UEFA_CL: {"name": "UEFA Champions League", "espn_id": "uefa.champions", "country": "UEFA"},
+    LEAGUE_UEFA_EL: {"name": "UEFA Europa League", "espn_id": "uefa.europa", "country": "UEFA"},
+    LEAGUE_UEFA_CONF: {"name": "UEFA Conference League", "espn_id": "uefa.europa.conf", "country": "UEFA"},
 }
 
 # Config flow
