@@ -158,7 +158,21 @@ class LigueFootCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             league_id=self.espn_league,
             team_id=self.team_id,
         )
-        return await self._get(session, url)
+        schedule = await self._get(session, url)
+
+        # ESPN ne renvoie que les matchs joués par défaut : les matchs à venir
+        # demandent le paramètre ?fixture=true. On fusionne les deux listes.
+        try:
+            fixtures = await self._get(session, f"{url}?fixture=true")
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            _LOGGER.debug("ESPN : matchs à venir indisponibles : %s", err)
+            return schedule
+
+        events = {str(e.get("id")): e for e in schedule.get("events", [])}
+        for event in fixtures.get("events", []):
+            events.setdefault(str(event.get("id")), event)
+        schedule["events"] = list(events.values())
+        return schedule
 
     async def _get(self, session: aiohttp.ClientSession, url: str) -> dict:
         """Effectue une requête GET et retourne le JSON."""
@@ -182,7 +196,7 @@ class LigueFootCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if not date_str:
                     continue
                 match_date = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-                status = event.get("status", {}).get("type", {}).get("state", "")
+                status = self._event_status(event).get("type", {}).get("state", "")
                 if status != "post" and match_date >= now:
                     upcoming.append({"date": match_date, "raw": event})
             if not upcoming:
@@ -197,12 +211,12 @@ class LigueFootCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Retourne le match en cours pour cette équipe, si existant."""
         try:
             for event in scoreboard.get("events", []):
-                state = event.get("status", {}).get("type", {}).get("state", "")
+                state = self._event_status(event).get("type", {}).get("state", "")
                 if state != "in":
                     continue
                 for comp in event.get("competitions", []):
                     for comp_team in comp.get("competitors", []):
-                        if comp_team.get("team", {}).get("id") == self.team_id:
+                        if str(comp_team.get("team", {}).get("id")) == str(self.team_id):
                             return self._parse_event(event)
         except Exception as err:  # noqa: BLE001
             _LOGGER.debug("Erreur extraction match live : %s", err)
@@ -214,7 +228,7 @@ class LigueFootCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             events = schedule.get("events", [])
             past = []
             for event in events:
-                state = event.get("status", {}).get("type", {}).get("state", "")
+                state = self._event_status(event).get("type", {}).get("state", "")
                 if state == "post":
                     past.append(event)
             # Trie par date décroissante, prend les 5 derniers
@@ -232,20 +246,64 @@ class LigueFootCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.debug("Erreur extraction forme : %s", err)
             return []
 
+    @staticmethod
+    def _event_status(event: dict) -> dict:
+        """Retourne le statut d'un événement ESPN.
+
+        Selon l'endpoint, le statut est au niveau de l'événement (scoreboard)
+        ou dans la compétition (calendrier d'équipe).
+        """
+        status = event.get("status")
+        if isinstance(status, dict) and status.get("type"):
+            return status
+        for comp in event.get("competitions", []) or []:
+            status = comp.get("status")
+            if isinstance(status, dict) and status.get("type"):
+                return status
+        return {}
+
+    @staticmethod
+    def _score_value(score: Any) -> float | None:
+        """Convertit un score ESPN (nombre, texte ou objet) en nombre."""
+        if isinstance(score, dict):
+            score = score.get("value", score.get("displayValue"))
+        try:
+            return float(score)
+        except (TypeError, ValueError):
+            return None
+
     def _get_team_result(self, event: dict) -> str | None:
         """Retourne W, D ou L pour cette équipe dans un match terminé."""
         try:
             for comp in event.get("competitions", []):
-                for comp_team in comp.get("competitors", []):
-                    if comp_team.get("team", {}).get("id") == self.team_id:
-                        winner = comp_team.get("winner")
-                        score_home = int(comp.get("competitors", [{}])[0].get("score", 0) or 0)
-                        score_away = int(comp.get("competitors", [{}])[-1].get("score", 0) or 0)
-                        if winner is True:
-                            return "W"
-                        if winner is False:
-                            return "L"
-                        return "D"
+                competitors = comp.get("competitors", [])
+                me = next(
+                    (
+                        c
+                        for c in competitors
+                        if str(c.get("team", {}).get("id")) == str(self.team_id)
+                    ),
+                    None,
+                )
+                other = next((c for c in competitors if c is not me), None)
+                if me is None or other is None:
+                    continue
+
+                mine = self._score_value(me.get("score"))
+                theirs = self._score_value(other.get("score"))
+                if mine is not None and theirs is not None:
+                    if mine > theirs:
+                        return "W"
+                    if mine < theirs:
+                        return "L"
+                    return "D"
+
+                # Pas de score exploitable : on se rabat sur le champ winner
+                if me.get("winner") is True:
+                    return "W"
+                if other.get("winner") is True:
+                    return "L"
+                return "D"
         except Exception:  # noqa: BLE001
             pass
         return None
@@ -268,7 +326,7 @@ class LigueFootCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "away_team": away.get("team", {}).get("displayName", ""),
                 "away_team_logo": away.get("team", {}).get("logo", ""),
                 "away_score": away.get("score", ""),
-                "status": event.get("status", {}).get("type", {}).get("description", ""),
+                "status": self._event_status(event).get("type", {}).get("description", ""),
                 "venue": comp.get("venue", {}).get("fullName", ""),
                 "matchday": event.get("week", {}).get("number", ""),
             }
