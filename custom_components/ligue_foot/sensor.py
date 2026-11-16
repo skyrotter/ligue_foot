@@ -4,15 +4,55 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_TEAM_NAME, DOMAIN, LEAGUES
+from .const import CONF_LEAGUE, CONF_TEAM_NAME, DOMAIN, LEAGUES
 from .coordinator import LigueFootCoordinator
+
+
+def _entry_stats(entry: dict) -> dict[str, Any]:
+    """Transforme la liste de stats ESPN en dict {nom: valeur}."""
+    return {
+        s.get("name"): s.get("value")
+        for s in entry.get("stats", [])
+        if isinstance(s, dict)
+    }
+
+
+def _get_tables(standings: dict) -> list[list[dict]]:
+    """Retourne toutes les tables de classement, quelle que soit la structure ESPN.
+
+    ESPN renvoie soit ``standings.entries``, soit ``children[].standings.entries``
+    (une table par groupe ou par phase).
+    """
+    tables: list[list[dict]] = []
+    if not isinstance(standings, dict):
+        return tables
+    direct = standings.get("standings")
+    if isinstance(direct, dict) and direct.get("entries"):
+        tables.append(direct["entries"])
+    for child in standings.get("children") or []:
+        child_standings = child.get("standings") if isinstance(child, dict) else None
+        if isinstance(child_standings, dict) and child_standings.get("entries"):
+            tables.append(child_standings["entries"])
+    return tables
+
+
+def _sort_entries(entries: list[dict]) -> list[dict]:
+    """Trie les entrées par rang ESPN (ordre d'origine conservé si pas de rang)."""
+
+    def _key(entry: dict) -> float:
+        try:
+            return float(_entry_stats(entry).get("rank"))
+        except (TypeError, ValueError):
+            return float("inf")
+
+    return sorted(entries, key=_key)
 
 
 async def async_setup_entry(
@@ -53,7 +93,7 @@ class LigueFootBaseSensor(CoordinatorEntity[LigueFootCoordinator], SensorEntity)
             identifiers={(DOMAIN, entry.entry_id)},
             name=f"Ligue Foot · {team_name}",
             manufacturer="ESPN",
-            model=LEAGUES.get(entry.data.get("league", ""), {}).get("name", ""),
+            model=LEAGUES.get(entry.data.get(CONF_LEAGUE, ""), {}).get("name", ""),
         )
 
 
@@ -61,6 +101,7 @@ class LigueFootNextMatchSensor(LigueFootBaseSensor):
     """Capteur : prochain match de l'équipe."""
 
     _attr_icon = "mdi:soccer"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(self, coordinator, entry, team_name) -> None:
         """Initialise."""
@@ -68,13 +109,13 @@ class LigueFootNextMatchSensor(LigueFootBaseSensor):
         self._attr_name = f"{team_name} — Prochain match"
 
     @property
-    def native_value(self) -> str | None:
+    def native_value(self) -> datetime | None:
         """Retourne la date du prochain match comme état principal."""
         match = self.coordinator.data.get("next_match")
         if not match:
             return None
         date: datetime | None = match.get("date")
-        return date.isoformat() if date else None
+        return date if isinstance(date, datetime) else None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -101,7 +142,7 @@ class LigueFootStandingsSensor(LigueFootBaseSensor):
     def __init__(self, coordinator, entry, team_name) -> None:
         """Initialise."""
         super().__init__(coordinator, entry, team_name, "standings")
-        league_name = LEAGUES.get(entry.data.get("league", ""), {}).get("name", "Ligue")
+        league_name = LEAGUES.get(entry.data.get(CONF_LEAGUE, ""), {}).get("name", "Ligue")
         self._attr_name = f"{league_name} — Classement"
 
     @property
@@ -120,15 +161,21 @@ class LigueFootStandingsSensor(LigueFootBaseSensor):
             return {}
         return {"table": self._extract_table(standings)}
 
+    def _team_table(self, standings: dict) -> list[dict]:
+        """Retourne la table (triée) qui contient l'équipe, sinon la première."""
+        tables = _get_tables(standings)
+        team_id = str(self.coordinator.team_id)
+        for entries in tables:
+            if any(str(e.get("team", {}).get("id")) == team_id for e in entries):
+                return _sort_entries(entries)
+        return _sort_entries(tables[0]) if tables else []
+
     def _find_team_position(self, standings: dict) -> int | None:
         """Trouve la position de l'équipe dans le classement ESPN."""
         try:
-            entries = (
-                standings.get("standings", {})
-                .get("entries", [])
-            )
-            for i, entry in enumerate(entries, 1):
-                if entry.get("team", {}).get("id") == self.coordinator.team_id:
+            team_id = str(self.coordinator.team_id)
+            for i, entry in enumerate(self._team_table(standings), 1):
+                if str(entry.get("team", {}).get("id")) == team_id:
                     return i
         except Exception:  # noqa: BLE001
             pass
@@ -137,15 +184,15 @@ class LigueFootStandingsSensor(LigueFootBaseSensor):
     def _extract_table(self, standings: dict) -> list[dict]:
         """Extrait le tableau de classement complet."""
         try:
-            entries = standings.get("standings", {}).get("entries", [])
             table = []
-            for i, entry in enumerate(entries, 1):
+            for i, entry in enumerate(self._team_table(standings), 1):
                 team = entry.get("team", {})
-                stats = {s["name"]: s.get("value") for s in entry.get("stats", [])}
+                stats = _entry_stats(entry)
+                logos = team.get("logos") or [{}]
                 table.append({
                     "position": i,
                     "team": team.get("displayName"),
-                    "logo": team.get("logos", [{}])[0].get("href") if team.get("logos") else "",
+                    "logo": logos[0].get("href", ""),
                     "points": stats.get("points"),
                     "played": stats.get("gamesPlayed"),
                     "wins": stats.get("wins"),
